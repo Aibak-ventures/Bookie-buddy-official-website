@@ -1,0 +1,17 @@
+/* Sticky navbar shadow when scrolled */
+.navbar.sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+html.dark .navbar.sticky {
+  background-color: #000;
+  border-bottom-color: #374151;
+}

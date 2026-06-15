@@ -1,0 +1,28 @@
+.shop-loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f0f4ff;
+  gap: 16px;
+}
+
+.shop-spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid #dbeafe;
+  border-top-color: var(--shop-blue, #1a56db);
+  border-radius: 50%;
+  animation: shopSpin 0.8s linear infinite;
+}
+
+@keyframes shopSpin {
+  to { transform: rotate(360deg); }
+}
+
+.shop-loading-text {
+  color: #6b7280;
+  font-size: 15px;
+  margin: 0;
+}
