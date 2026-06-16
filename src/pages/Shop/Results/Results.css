@@ -442,10 +442,14 @@
   transform: translateY(-2px);
 }
 
-/* List mode card: horizontal layout */
+/* List mode card: horizontal layout. Positioned so the Book Now button can be
+   pinned to the card's bottom-right corner independent of text content. */
 .product-card--list {
+  position: relative;
   flex-direction: row;
-  align-items: flex-start;
+  /* stretch (not flex-start) so the image column always matches whatever
+     height the content column ends up needing — no gap below the image. */
+  align-items: stretch;
 }
 
 .product-card__image-wrap {
@@ -461,10 +465,14 @@
   aspect-ratio: 4 / 3;
 }
 
-/* List mode image */
+/* List mode image — fixed width, but height stretches to match the content
+   column (via the row's align-items: stretch above) so it always fills the
+   full card height with no empty gap underneath. min-height keeps it from
+   collapsing below a sensible size when the content column is very short. */
 .product-card--list .product-card__image-wrap {
   width: 120px;
-  height: 120px;
+  min-height: 120px;
+  align-self: stretch;
 }
 
 .product-card__image {
@@ -495,6 +503,15 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* List mode: card itself is a row. The button is taken out of flow (absolute,
+   anchored to the card's bottom-right corner) so reserve space for it here
+   instead of relying on flex auto-margin. */
+.product-card--list .product-card__body {
+  align-self: stretch;
+  padding-right: 118px;
+  padding-bottom: 44px;
 }
 
 .product-card__name {
@@ -552,6 +569,53 @@
   color: #6b7280;
 }
 
+/* ─── Book Now CTA ───────────────────────────────────────────────────────── */
+.product-card__book-btn {
+  /* Pinned to the bottom of the card body regardless of how much content
+     (title length, badges, variants, etc.) sits above it. */
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #1a56db;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.2s;
+
+  /* Hidden by default — revealed on hover/active/focus below */
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.product-card__book-btn:hover {
+  background: #1e40af;
+}
+
+.product-card:hover .product-card__book-btn,
+.product-card:focus-within .product-card__book-btn,
+.product-card--active .product-card__book-btn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* List mode: detach the button from the body's flow and pin it to the card's
+   bottom-right corner with a fixed gap — its position never shifts with
+   title/description length. Reveal rules (hover/active/focus) still apply. */
+.product-card--list .product-card__book-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: auto;
+  width: auto;
+  max-width: calc(100% - 24px);
+  margin-top: 0;
+}
+
 /* Extra small mobile: reduce card padding and fonts */
 @media (max-width: 480px) {
   .product-card__body {
@@ -567,6 +631,19 @@
   .product-card__badge {
     font-size: 9px;
     padding: 1px 5px;
+  }
+  .product-card__book-btn {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .product-card--list .product-card__body {
+    padding-right: 96px;
+    padding-bottom: 36px;
+  }
+  .product-card--list .product-card__book-btn {
+    right: 8px;
+    bottom: 8px;
+    max-width: calc(100% - 16px);
   }
 }
 

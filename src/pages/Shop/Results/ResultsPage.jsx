@@ -250,7 +250,7 @@ const ResultsPage = () => {
             )}
             {!loading && !error && (
               <>
-                <ProductGrid products={products} viewMode={viewMode} />
+                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} />
                 <Pagination next={nextUrl} previous={prevUrl} />
               </>
             )}
