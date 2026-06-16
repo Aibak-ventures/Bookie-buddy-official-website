@@ -22,7 +22,10 @@ export function buildRequestParams(baseParams, activeFilters, overrides = {}) {
 
 // ── Thunks ──────────────────────────────────────────────────────────────────
 
-/** Full search — replaces current result set. Saves base + filter params. */
+/**
+ * Full search — treated as a brand-new search. Replaces the page cache entirely
+ * (used on initial load, service/category filter, free-text search, and "Update Search").
+ */
 export const fetchProductsThunk = createAsyncThunk(
   'products/fetchProducts',
   async ({ publicToken, baseParams, activeFilters = {}, overrides = {} }, { rejectWithValue }) => {
@@ -36,13 +39,26 @@ export const fetchProductsThunk = createAsyncThunk(
   }
 );
 
-/** Pagination only — does NOT change base params or filters. */
-export const fetchProductsPageThunk = createAsyncThunk(
-  'products/fetchProductsPage',
-  async (url, { rejectWithValue }) => {
+/**
+ * Advance to the next page. If that page was already fetched in this search
+ * session, the reducer below resolves it from cache without calling the API
+ * (the thunk only runs the network request when a new page actually needs fetching).
+ */
+export const goToNextPageThunk = createAsyncThunk(
+  'products/goToNextPage',
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState().products;
+    const targetIndex = state.currentPageIndex + 1;
+
+    // Already cached — no API call needed.
+    if (targetIndex < state.pages.length) {
+      return { cached: true, pageIndex: targetIndex };
+    }
+
     try {
-      const data = await fetchProductsFromUrl(url);
-      return data.data;
+      const nextUrl = state.pages[state.currentPageIndex]?.next;
+      const data = await fetchProductsFromUrl(nextUrl);
+      return { cached: false, result: data.data };
     } catch (err) {
       return rejectWithValue(err.message || 'Failed to load page');
     }
@@ -69,15 +85,14 @@ const initialActiveFilters = {
 const productsSlice = createSlice({
   name: 'products',
   initialState: {
-    products:      [],
-    next:          null,
-    previous:      null,
-    page_size:     15,
-    loading:       false,
-    error:         null,
-    isLoaded:      false,   // true once a successful fetch has completed
-    baseParams:    { ...initialBaseParams },
-    activeFilters: { ...initialActiveFilters },
+    pages:            [], // [{ url: string|null, products: [], next: string|null }, ...] — one entry per fetched page
+    currentPageIndex: -1,
+    page_size:        15,
+    loading:          false,
+    error:            null,
+    isLoaded:         false,   // true once a successful fetch has completed
+    baseParams:       { ...initialBaseParams },
+    activeFilters:    { ...initialActiveFilters },
   },
   reducers: {
     /** Update base search params (dates/times) without re-fetching */
@@ -88,62 +103,71 @@ const productsSlice = createSlice({
     setActiveFilters(state, action) {
       state.activeFilters = { ...state.activeFilters, ...action.payload };
     },
+    /** Move back to the previous page. Always served from cache — no API call. */
+    goToPrevPage(state) {
+      if (state.currentPageIndex > 0) {
+        state.currentPageIndex -= 1;
+      }
+    },
     clearProducts(state) {
-      state.products      = [];
-      state.next          = null;
-      state.previous      = null;
-      state.loading       = false;
-      state.error         = null;
-      state.isLoaded      = false;
-      state.baseParams    = { ...initialBaseParams };
-      state.activeFilters = { ...initialActiveFilters };
+      state.pages            = [];
+      state.currentPageIndex = -1;
+      state.loading          = false;
+      state.error            = null;
+      state.isLoaded         = false;
+      state.baseParams       = { ...initialBaseParams };
+      state.activeFilters    = { ...initialActiveFilters };
     },
   },
   extraReducers: (builder) => {
-    const applyResult = (state, payload) => {
-      // payload comes from fetchProductsThunk (has result + meta) or fetchProductsPageThunk (direct data)
-      const result = payload.result ?? payload;
-      state.loading  = false;
-      state.error    = null;
-      state.isLoaded = true;
-      state.products  = result.data?.products ?? [];
-      state.next      = result.next     ?? null;
-      state.previous  = result.previous ?? null;
-      state.page_size = result.page_size ?? 15;
-
-      // Save base + filter params when doing a full search (not pagination)
-      if (payload.baseParams) {
-        state.baseParams = {
-          ...state.baseParams,
-          ...payload.baseParams,
-          publicToken: payload.publicToken,
-        };
-      }
-      if (payload.activeFilters) {
-        state.activeFilters = { ...state.activeFilters, ...payload.activeFilters };
-      }
-    };
-
     builder
-      .addCase(fetchProductsThunk.pending,     (s) => { s.loading = true; s.error = null; })
-      .addCase(fetchProductsThunk.fulfilled,   (s, a) => applyResult(s, a.payload))
-      .addCase(fetchProductsThunk.rejected,    (s, a) => { s.loading = false; s.error = a.payload || 'Unknown error'; })
-      .addCase(fetchProductsPageThunk.pending,   (s) => { s.loading = true; s.error = null; })
-      .addCase(fetchProductsPageThunk.fulfilled, (s, a) => applyResult(s, a.payload))
-      .addCase(fetchProductsPageThunk.rejected,  (s, a) => { s.loading = false; s.error = a.payload || 'Unknown error'; });
+      // ── Fresh search: replace the page cache entirely ──────────────────────
+      .addCase(fetchProductsThunk.pending,   (s) => { s.loading = true; s.error = null; })
+      .addCase(fetchProductsThunk.fulfilled, (s, a) => {
+        const { result, publicToken, baseParams, activeFilters } = a.payload;
+        s.loading          = false;
+        s.error            = null;
+        s.isLoaded         = true;
+        s.pages            = [{ url: null, products: result.data?.products ?? [], next: result.next ?? null }];
+        s.currentPageIndex = 0;
+        s.page_size        = result.page_size ?? 15;
+        s.baseParams       = { ...s.baseParams, ...baseParams, publicToken };
+        s.activeFilters    = { ...s.activeFilters, ...activeFilters };
+      })
+      .addCase(fetchProductsThunk.rejected,  (s, a) => { s.loading = false; s.error = a.payload || 'Unknown error'; })
+
+      // ── Pagination: reuse cache when possible, otherwise fetch + append ────
+      .addCase(goToNextPageThunk.pending,   (s) => { s.loading = true; s.error = null; })
+      .addCase(goToNextPageThunk.fulfilled, (s, a) => {
+        s.loading = false;
+        s.error   = null;
+
+        if (a.payload.cached) {
+          s.currentPageIndex = a.payload.pageIndex;
+          return;
+        }
+
+        const { result } = a.payload;
+        const fetchedUrl = s.pages[s.currentPageIndex]?.next ?? null;
+        s.pages.push({ url: fetchedUrl, products: result.data?.products ?? [], next: result.next ?? null });
+        s.currentPageIndex = s.pages.length - 1;
+        s.page_size         = result.page_size ?? 15;
+      })
+      .addCase(goToNextPageThunk.rejected,  (s, a) => { s.loading = false; s.error = a.payload || 'Unknown error'; });
   },
 });
 
-export const { setBaseParams, setActiveFilters, clearProducts } = productsSlice.actions;
+export const { setBaseParams, setActiveFilters, goToPrevPage, clearProducts } = productsSlice.actions;
 
 // ── Selectors ────────────────────────────────────────────────────────────────
-export const selectProducts        = (s) => s.products.products;
-export const selectProductsLoading = (s) => s.products.loading;
-export const selectProductsError   = (s) => s.products.error;
-export const selectProductsNext    = (s) => s.products.next;
-export const selectProductsPrev    = (s) => s.products.previous;
-export const selectIsLoaded        = (s) => s.products.isLoaded;
-export const selectBaseParams      = (s) => s.products.baseParams;
-export const selectActiveFilters   = (s) => s.products.activeFilters;
+export const selectProducts          = (s) => s.products.pages[s.products.currentPageIndex]?.products ?? [];
+export const selectProductsLoading   = (s) => s.products.loading;
+export const selectProductsError     = (s) => s.products.error;
+export const selectProductsNext      = (s) => s.products.pages[s.products.currentPageIndex]?.next ?? null;
+export const selectProductsPrev      = (s) => s.products.currentPageIndex > 0 ? true : null;
+export const selectIsLoaded          = (s) => s.products.isLoaded;
+export const selectBaseParams        = (s) => s.products.baseParams;
+export const selectActiveFilters     = (s) => s.products.activeFilters;
+export const selectCurrentPageIndex  = (s) => s.products.currentPageIndex;
 
 export default productsSlice.reducer;
