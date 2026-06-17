@@ -184,6 +184,7 @@
 /* Sidebar overflow safety on mobile */
 @media (max-width: 767px) {
   .results-sidebar {
+    position: static; /* cancel sticky — panel must scroll with the page, not trap cards under it */
     width: 100%;
     box-sizing: border-box;
     max-height: 80vh;
@@ -614,6 +615,15 @@
   width: auto;
   max-width: calc(100% - 24px);
   margin-top: 0;
+}
+
+/* Mobile & tablet: Book Now button always visible — no tap/hover required */
+@media (max-width: 1023px) {
+  .product-card__book-btn {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 }
 
 /* Extra small mobile: reduce card padding and fonts */
