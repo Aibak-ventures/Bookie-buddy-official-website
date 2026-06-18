@@ -11,7 +11,6 @@ import { API_BASE_URL } from '../config';
  *   pickup_time    {string} optional — 'HH:mm'
  *   return_time    {string} optional — 'HH:mm'
  *   search_value   {string} optional
- *   search_field   {string} optional — always 'name' when search_value is set
  *   service_id     {number|string} optional
  *   min_price      {number|string} optional
  *   max_price      {number|string} optional
@@ -30,7 +29,6 @@ export async function fetchProducts(publicToken, params = {}) {
   append('pickup_time',  params.pickup_time);
   append('return_time',  params.return_time);
   append('search_value', params.search_value);
-  append('search_field', params.search_field);
   append('service_id',   params.service_id);
   append('min_price',    params.min_price);
   append('max_price',    params.max_price);

@@ -14,7 +14,6 @@ export function buildRequestParams(baseParams, activeFilters, overrides = {}) {
     return_time:  baseParams.return_time  || undefined,
     service_id:   overrides.service_id   ?? activeFilters.service_id  ?? undefined,
     search_value: sv || undefined,
-    search_field: sv ? 'name' : undefined,
     min_price:    overrides.min_price    ?? activeFilters.min_price    ?? undefined,
     max_price:    overrides.max_price    ?? activeFilters.max_price    ?? undefined,
   };

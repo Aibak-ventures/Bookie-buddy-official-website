@@ -146,7 +146,6 @@ const ShopSearchForm = () => {
     if (returnTime) qs.set('return_time', returnTime);
     if (searchQuery.trim()) {
       qs.set('search_value', searchQuery.trim());
-      qs.set('search_field', 'name');
     }
 
     navigate(`/shop/${shopName}/${publicToken}/results?${qs.toString()}`);
