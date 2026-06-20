@@ -15,7 +15,7 @@ const MAX_VISIBLE_VARIANTS = 3;
  * - Desktop: revealed on hover (pure CSS, see Results.css).
  * - Touch devices: revealed by tapping the card; tapping outside hides it again.
  */
-const ProductCard = ({ product, viewMode = 'grid', shop, baseParams }) => {
+const ProductCard = ({ product, viewMode = 'grid', shop, baseParams, isOrganization = false }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isActive,  setIsActive]  = useState(false);
   const cardRef = useRef(null);
@@ -77,6 +77,14 @@ const ProductCard = ({ product, viewMode = 'grid', shop, baseParams }) => {
             onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
           />
           <span className="product-card__zoom-hint" aria-hidden="true">🔍</span>
+          {isOrganization && product.shop_place && (
+            <span className="product-card__place-badge" aria-label={`Location: ${product.shop_place}`}>
+              <svg className="product-card__place-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              {product.shop_place}
+            </span>
+          )}
         </div>
 
         <div className="product-card__body">

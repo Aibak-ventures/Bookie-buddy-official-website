@@ -30,6 +30,7 @@ export async function fetchProducts(publicToken, params = {}) {
   append('return_time',  params.return_time);
   append('search_value', params.search_value);
   append('service_id',   params.service_id);
+  append('service_ids',  params.service_ids);
   append('min_price',    params.min_price);
   append('max_price',    params.max_price);
 

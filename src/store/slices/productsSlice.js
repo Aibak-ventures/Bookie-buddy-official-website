@@ -13,6 +13,7 @@ export function buildRequestParams(baseParams, activeFilters, overrides = {}) {
     pickup_time:  baseParams.pickup_time  || undefined,
     return_time:  baseParams.return_time  || undefined,
     service_id:   overrides.service_id   ?? activeFilters.service_id  ?? undefined,
+    service_ids:  overrides.service_ids  ?? activeFilters.service_ids ?? undefined,
     search_value: sv || undefined,
     min_price:    overrides.min_price    ?? activeFilters.min_price    ?? undefined,
     max_price:    overrides.max_price    ?? activeFilters.max_price    ?? undefined,
@@ -76,6 +77,7 @@ const initialBaseParams = {
 
 const initialActiveFilters = {
   service_id:   null,
+  service_ids:  null,  // org: comma-separated string e.g. "7,47"
   search_value: null,
   min_price:    null,
   max_price:    null,

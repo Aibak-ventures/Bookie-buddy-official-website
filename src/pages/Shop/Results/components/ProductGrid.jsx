@@ -5,7 +5,7 @@ import ProductCard from './ProductCard';
  * viewMode: 'grid' (default, 5-col desktop / 2-col mobile)
  *           'list'  (1-col, wider cards, mobile only)
  */
-const ProductGrid = ({ products = [], viewMode = 'grid', shop, baseParams }) => {
+const ProductGrid = ({ products = [], viewMode = 'grid', shop, baseParams, isOrganization = false }) => {
   if (products.length === 0) {
     return (
       <div className="product-grid-empty">
@@ -19,7 +19,7 @@ const ProductGrid = ({ products = [], viewMode = 'grid', shop, baseParams }) => 
   return (
     <div className={`product-grid product-grid--${viewMode}`}>
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} viewMode={viewMode} shop={shop} baseParams={baseParams} />
+        <ProductCard key={product.id} product={product} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} />
       ))}
     </div>
   );

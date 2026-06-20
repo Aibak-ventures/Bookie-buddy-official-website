@@ -15,7 +15,7 @@ import {
   selectBaseParams,
   selectActiveFilters,
 } from '../../../store/slices/productsSlice';
-import { selectShop, selectServices, selectShopLoading } from '../../../store/slices/shopSlice';
+import { selectShop, selectServices, selectIsOrganization, selectShopLoading } from '../../../store/slices/shopSlice';
 
 import ShopHeader        from '../components/ShopHeader';
 import ServiceFilter     from './components/ServiceFilter';
@@ -33,9 +33,10 @@ const ResultsPage = () => {
   const dispatch                  = useDispatch();
 
   // Redux state
-  const shop          = useSelector(selectShop);
-  const services      = useSelector(selectServices);
-  const shopLoading   = useSelector(selectShopLoading);
+  const shop           = useSelector(selectShop);
+  const services       = useSelector(selectServices);
+  const isOrganization = useSelector(selectIsOrganization);
+  const shopLoading    = useSelector(selectShopLoading);
   const products      = useSelector(selectProducts);
   const loading       = useSelector(selectProductsLoading);
   const error         = useSelector(selectProductsError);
@@ -135,8 +136,15 @@ const ResultsPage = () => {
 
   // Handlers
   const handleServiceSelect = (serviceId) => {
-    dispatch(setActiveFilters({ service_id: serviceId }));
-    doFetch({ service_id: serviceId });
+    // Org services use comma-separated IDs (e.g. "7,47") → service_ids param.
+    // Shop services use a single ID string → service_id param.
+    if (serviceId && String(serviceId).includes(',')) {
+      dispatch(setActiveFilters({ service_ids: serviceId, service_id: null }));
+      doFetch({ service_ids: serviceId, service_id: null });
+    } else {
+      dispatch(setActiveFilters({ service_id: serviceId, service_ids: null }));
+      doFetch({ service_id: serviceId, service_ids: null });
+    }
   };
 
   const handleSearch = (keyword) => {
@@ -195,7 +203,7 @@ const ResultsPage = () => {
         {/* Service chips */}
         <ServiceFilter
           services={services}
-          selectedId={activeFilters.service_id}
+          selectedId={activeFilters.service_ids ?? activeFilters.service_id ?? null}
           onSelect={handleServiceSelect}
         />
 
@@ -250,7 +258,7 @@ const ResultsPage = () => {
             )}
             {!loading && !error && (
               <>
-                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} />
+                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} />
                 <Pagination next={nextUrl} previous={prevUrl} />
               </>
             )}
