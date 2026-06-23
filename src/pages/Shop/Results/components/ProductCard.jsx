@@ -83,10 +83,9 @@ const ProductCard = ({ product, viewMode = 'grid', shop, baseParams, isOrganizat
     setShareState('loading');
 
     const { method, error } = await shareProduct({
-      imageUrl:   fullImg,
-      name:       product.name,
+      name:        product.name,
       description: product.category || '',
-      productUrl: window.location.href,
+      productUrl:  window.location.href,
     });
 
     if (error === 'cancelled') {
