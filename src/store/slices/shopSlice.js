@@ -30,9 +30,10 @@ export const fetchShopInfoThunk = createAsyncThunk(
       const rawServices = data.data.services || [];
       const isOrganization = Array.isArray(rawServices[0]?.service_ids);
       return {
-        shop:           data.data.shop,
-        services:       normalizeServices(rawServices),
+        shop:            data.data.shop,
+        services:        normalizeServices(rawServices),
         isOrganization,
+        associatedShops: data.data.associated_shops ?? [],
       };
     } catch (err) {
       return rejectWithValue(err.message || 'Failed to load shop');
@@ -43,19 +44,21 @@ export const fetchShopInfoThunk = createAsyncThunk(
 const shopSlice = createSlice({
   name: 'shop',
   initialState: {
-    shop:           null,
-    services:       [],
-    isOrganization: false,
-    loading:        false,
-    error:          null,
+    shop:            null,
+    services:        [],
+    associatedShops: [],
+    isOrganization:  false,
+    loading:         false,
+    error:           null,
   },
   reducers: {
     clearShop(state) {
-      state.shop           = null;
-      state.services       = [];
-      state.isOrganization = false;
-      state.loading        = false;
-      state.error          = null;
+      state.shop            = null;
+      state.services        = [];
+      state.associatedShops = [];
+      state.isOrganization  = false;
+      state.loading         = false;
+      state.error           = null;
     },
   },
   extraReducers: (builder) => {
@@ -65,10 +68,11 @@ const shopSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchShopInfoThunk.fulfilled, (state, action) => {
-        state.loading        = false;
-        state.shop           = action.payload.shop;
-        state.services       = action.payload.services;
-        state.isOrganization = action.payload.isOrganization;
+        state.loading         = false;
+        state.shop            = action.payload.shop;
+        state.services        = action.payload.services;
+        state.isOrganization  = action.payload.isOrganization;
+        state.associatedShops = action.payload.associatedShops;
       })
       .addCase(fetchShopInfoThunk.rejected, (state, action) => {
         state.loading = false;
@@ -80,10 +84,11 @@ const shopSlice = createSlice({
 export const { clearShop } = shopSlice.actions;
 
 // Selectors
-export const selectShop           = (state) => state.shop.shop;
-export const selectServices       = (state) => state.shop.services;
-export const selectIsOrganization = (state) => state.shop.isOrganization;
-export const selectShopLoading    = (state) => state.shop.loading;
-export const selectShopError      = (state) => state.shop.error;
+export const selectShop            = (state) => state.shop.shop;
+export const selectServices        = (state) => state.shop.services;
+export const selectAssociatedShops = (state) => state.shop.associatedShops;
+export const selectIsOrganization  = (state) => state.shop.isOrganization;
+export const selectShopLoading     = (state) => state.shop.loading;
+export const selectShopError       = (state) => state.shop.error;
 
 export default shopSlice.reducer;

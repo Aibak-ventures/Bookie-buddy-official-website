@@ -15,7 +15,7 @@ import {
   selectBaseParams,
   selectActiveFilters,
 } from '../../../store/slices/productsSlice';
-import { selectShop, selectServices, selectIsOrganization, selectShopLoading } from '../../../store/slices/shopSlice';
+import { selectShop, selectServices, selectAssociatedShops, selectIsOrganization, selectShopLoading } from '../../../store/slices/shopSlice';
 
 import ShopHeader        from '../components/ShopHeader';
 import ServiceFilter     from './components/ServiceFilter';
@@ -33,10 +33,11 @@ const ResultsPage = () => {
   const dispatch                  = useDispatch();
 
   // Redux state
-  const shop           = useSelector(selectShop);
-  const services       = useSelector(selectServices);
-  const isOrganization = useSelector(selectIsOrganization);
-  const shopLoading    = useSelector(selectShopLoading);
+  const shop            = useSelector(selectShop);
+  const services        = useSelector(selectServices);
+  const associatedShops = useSelector(selectAssociatedShops);
+  const isOrganization  = useSelector(selectIsOrganization);
+  const shopLoading     = useSelector(selectShopLoading);
   const products      = useSelector(selectProducts);
   const loading       = useSelector(selectProductsLoading);
   const error         = useSelector(selectProductsError);
@@ -258,7 +259,7 @@ const ResultsPage = () => {
             )}
             {!loading && !error && (
               <>
-                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} />
+                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} associatedShops={associatedShops} />
                 <Pagination next={nextUrl} previous={prevUrl} />
               </>
             )}

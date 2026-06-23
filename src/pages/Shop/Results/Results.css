@@ -602,12 +602,32 @@
   color: #6b7280;
 }
 
+/* ─── Action row (Book Now + Share) ─────────────────────────────────────── */
+.product-card__actions {
+  /* Pushes the action row to the bottom of the card body */
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  /* Hidden by default — revealed on hover/active/focus below */
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.product-card:hover .product-card__actions,
+.product-card:focus-within .product-card__actions,
+.product-card--active .product-card__actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
 /* ─── Book Now CTA ───────────────────────────────────────────────────────── */
 .product-card__book-btn {
-  /* Pinned to the bottom of the card body regardless of how much content
-     (title length, badges, variants, etc.) sits above it. */
-  margin-top: auto;
-  width: 100%;
+  flex: 1;
   border: none;
   border-radius: 8px;
   background: #1a56db;
@@ -616,42 +636,66 @@
   font-weight: 600;
   padding: 9px 12px;
   cursor: pointer;
-  transition: background 0.2s, opacity 0.2s, transform 0.2s;
-
-  /* Hidden by default — revealed on hover/active/focus below */
-  opacity: 0;
-  transform: translateY(8px);
-  pointer-events: none;
+  transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .product-card__book-btn:hover {
   background: #1e40af;
 }
 
-.product-card:hover .product-card__book-btn,
-.product-card:focus-within .product-card__book-btn,
-.product-card--active .product-card__book-btn {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+/* ─── Share button ───────────────────────────────────────────────────────── */
+.product-card__share-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
 }
 
-/* List mode: detach the button from the body's flow and pin it to the card's
-   bottom-right corner with a fixed gap — its position never shifts with
-   title/description length. Reveal rules (hover/active/focus) still apply. */
-.product-card--list .product-card__book-btn {
+.product-card__share-btn:hover:not(:disabled) {
+  border-color: #1a56db;
+  color: #1a56db;
+}
+
+.product-card__share-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.product-card__share-btn--copied {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.product-card__share-btn--error {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+/* List mode: pin the entire action row to the bottom-right of the card */
+.product-card--list .product-card__actions {
   position: absolute;
   right: 12px;
   bottom: 12px;
   left: auto;
-  width: auto;
-  max-width: calc(100% - 24px);
   margin-top: 0;
+  max-width: calc(100% - 24px);
 }
 
-/* Mobile & tablet: Book Now button always visible — no tap/hover required */
+/* Mobile & tablet: action row always visible — no tap/hover required */
 @media (max-width: 1023px) {
-  .product-card__book-btn {
+  .product-card__actions {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
@@ -679,10 +723,10 @@
     padding: 8px 10px;
   }
   .product-card--list .product-card__body {
-    padding-right: 96px;
+    padding-right: 110px;
     padding-bottom: 36px;
   }
-  .product-card--list .product-card__book-btn {
+  .product-card--list .product-card__actions {
     right: 8px;
     bottom: 8px;
     max-width: calc(100% - 16px);
