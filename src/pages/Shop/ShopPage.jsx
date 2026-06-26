@@ -51,8 +51,9 @@ const ShopPage = () => {
   return (
     <div className="shop-page">
       <ShopHeader shop={shop} />
-      <ShopBanner shop={shop} />
-      <ShopSearchForm />
+      <ShopBanner shop={shop}>
+        <ShopSearchForm />
+      </ShopBanner>
       <ShopInfoSection shop={shop} />
       <footer className="shop-footer">
         <p>

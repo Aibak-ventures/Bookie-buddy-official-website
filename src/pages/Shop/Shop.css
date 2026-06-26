@@ -1,9 +1,9 @@
 /* ─── Shop page CSS variables ─────────────────────────────────────────────── */
 .shop-page {
-  --shop-blue:       #1a56db;
-  --shop-blue-dark:  #1e40af;
-  --shop-blue-light: #3b82f6;
-  --shop-bg:         #f0f4ff;
+  --shop-blue:       #7d56e7;
+  --shop-blue-dark:  #6132E4;
+  --shop-blue-light: #8661F3;
+  --shop-bg:         #ffff;
   min-height: 100vh;
   background: var(--shop-bg);
   font-family: inherit;
@@ -77,17 +77,24 @@
 
 /* ─── Banner ─────────────────────────────────────────────────────────────── */
 .shop-banner {
-  background: linear-gradient(135deg, #1a56db 0%, #1e40af 60%, #3b82f6 100%);
-  padding: 72px 24px 100px;
-  position: relative;
-  overflow: hidden;
-  text-align: center;
+    min-height: 100vh;
+    min-height: 90vh;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #8a61fb 0%, #8458ffba 60%, #ffffff 100%);
+    padding: 10px 24px 10px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .shop-banner__inner {
   position: relative;
   z-index: 2;
-  max-width: 680px;
+  max-width: 900px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -145,10 +152,9 @@
 
 /* ─── Search section ─────────────────────────────────────────────────────── */
 .shop-search-section {
-  padding: 0 16px 40px;
-  margin-top: -52px;
-  position: relative;
-  z-index: 10;
+  padding: 0;
+  width: 100%;
+  margin-top: 40px;
 }
 
 .shop-search-card {
@@ -224,7 +230,7 @@
 }
 
 .shop-search-form__btn {
-  background: #1a56db;
+  background: var(--shop-blue);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -382,6 +388,7 @@
 .shop-about-section {
   padding: 40px 16px 60px;
   text-align: center;
+  background: (var(--shop-bg));
 }
 
 .shop-about__heading {
@@ -446,7 +453,7 @@
 
 /* ─── Shop footer ────────────────────────────────────────────────────────── */
 .shop-footer {
-  background: #1e40af;
+  background: var(--shop-blue);
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
   padding: 20px 16px;

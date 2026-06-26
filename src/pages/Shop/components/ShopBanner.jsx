@@ -1,7 +1,7 @@
 /**
  * ShopBanner — full-width blue-gradient hero section inspired by Flightpoints.
  */
-const ShopBanner = ({ shop }) => {
+const ShopBanner = ({ shop, children }) => {
   const name = shop?.name || '';
   const place = shop?.place || shop?.address || '';
 
@@ -14,6 +14,7 @@ const ShopBanner = ({ shop }) => {
         <p className="shop-banner__tagline">
           Find and reserve the best rental options — fast and hassle-free.
         </p>
+        {children}
       </div>
 
       {/* Decorative circles */}
