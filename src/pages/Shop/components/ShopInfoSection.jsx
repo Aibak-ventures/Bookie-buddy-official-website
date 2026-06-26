@@ -1,16 +1,17 @@
 /**
- * ShopInfoSection — clean, center-aligned "About the Shop" section.
- * No card, no borders. Just logo, name, and available contact details.
+ * ShopInfoSection — modern two-column layout: logo/name left, details right.
  */
 
 const Detail = ({ icon, label, value }) => {
   if (!value) return null;
   return (
-    <p className="shop-about__detail">
+    <div className="shop-about__detail">
       <span className="shop-about__detail-icon" aria-hidden="true">{icon}</span>
-      <span className="shop-about__detail-label">{label}:&nbsp;</span>
-      <span className="shop-about__detail-value">{value}</span>
-    </p>
+      <div className="shop-about__detail-text">
+        <span className="shop-about__detail-label">{label}</span>
+        <span className="shop-about__detail-value">{value}</span>
+      </div>
+    </div>
   );
 };
 
@@ -28,24 +29,36 @@ const ShopInfoSection = ({ shop }) => {
 
   return (
     <section className="shop-about-section">
-      <h2 className="shop-about__heading">About the Shop</h2>
+      <div className="shop-about__card">
+        {/* Left column: logo + name */}
+        <div className="shop-about__left">
+          {shop.img ? (
+            <img
+              src={shop.img}
+              alt={`${shop.name} logo`}
+              className="shop-about__logo"
+            />
+          ) : (
+            <div className="shop-about__logo-placeholder">
+              {shop.name?.[0]?.toUpperCase()}
+            </div>
+          )}
+          <h3 className="shop-about__name">{shop.name}</h3>
+        </div>
 
-      {shop.img && (
-        <img
-          src={shop.img}
-          alt={`${shop.name} logo`}
-          className="shop-about__logo"
-        />
-      )}
+        <div className="shop-about__divider" aria-hidden="true" />
 
-      <h3 className="shop-about__name">{shop.name}</h3>
-
-      <div className="shop-about__details">
-        <Detail icon="📍" label="Address" value={address} />
-        <Detail icon="🏷" label="Pincode" value={pincode} />
-        <Detail icon="📞" label="Phone"   value={phone} />
-        <Detail icon="✉️" label="Email"   value={shop.email} />
-        <Detail icon="🧾" label="GST"     value={shop.gst_number} />
+        {/* Right column: details */}
+        <div className="shop-about__right">
+          <h2 className="shop-about__heading">About the Shop</h2>
+          <div className="shop-about__details">
+            <Detail icon="📍" label="Address" value={address} />
+            <Detail icon="🏷"  label="Pincode" value={pincode} />
+            <Detail icon="📞" label="Phone"   value={phone} />
+            <Detail icon="✉️" label="Email"   value={shop.email} />
+            <Detail icon="🧾" label="GST"     value={shop.gst_number} />
+          </div>
+        </div>
       </div>
     </section>
   );
