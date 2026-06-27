@@ -159,172 +159,203 @@
 
 .shop-search-card {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  max-width: 900px;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.14);
+  max-width: 960px;
   margin: 0 auto;
-  padding: 32px 28px 28px;
+  padding: 32px 32px 28px;
 }
 
 .shop-search-card__heading {
   font-size: 18px;
   font-weight: 700;
   color: #111827;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
+  letter-spacing: -0.01em;
 }
 
-.shop-search-form__grid {
+/* ─── Grouped pickup / return layout ─────────────────────────────────────── */
+.shop-search-groups {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 16px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.shop-search-group {
+  flex: 1;
+  padding: 18px 20px;
+}
+
+.shop-search-group__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--shop-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+
+/* Date field takes 3 parts, time takes 1 part */
+.shop-search-group__fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: 3fr 1.2fr;
+  gap: 12px;
+  align-items: start;
 }
 
-@media (min-width: 768px) {
-  .shop-search-form__grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+/* Arrow between groups */
+.shop-search-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  align-self: center;
 }
 
+/* Divider between the two groups */
+.shop-search-group + .shop-search-arrow + .shop-search-group {
+  border-left: 1.5px solid #e5e7eb;
+}
+
+/* ─── Field base ─────────────────────────────────────────────────────────── */
 .shop-search-form__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+/* Primary label (date) */
 .shop-search-form__label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
 }
 
-.shop-search-form__icon {
-  font-size: 14px;
+.shop-search-form__label svg {
+  color: #6b7280;
+  flex-shrink: 0;
 }
 
+/* Secondary label (time) — same style as date label */
+.shop-search-form__label--secondary {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 0.07em;
+}
+
+.shop-search-form__label--secondary svg {
+  color: #6b7280;
+}
+
+.shop-search-form__optional {
+  font-size: 9px;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.shop-search-form__required {
+  color: #ef4444;
+  margin-left: 1px;
+}
+
+/* Primary input */
 .shop-search-form__input {
   border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 14px;
   color: #111827;
-  background: #f9fafb;
+  background: #fff;
   outline: none;
   transition: border-color 0.2s;
   width: 100%;
 }
 
 .shop-search-form__input:focus {
-  border-color: #1a56db;
+  border-color: var(--shop-blue);
+}
+
+/* Secondary input (time) — same height/font as date, just narrower */
+.shop-search-form__input--secondary {
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #111827;
   background: #fff;
-}
-
-.shop-search-form__required {
-  color: #ef4444;
-  margin-left: 2px;
-}
-
-.shop-search-form__btn {
-  background: var(--shop-blue);
-  color: #fff;
-  border: none;
+  border-color: #e5e7eb;
   border-radius: 10px;
-  padding: 11px 28px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.01em;
-  transition: background 0.2s, transform 0.1s;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.shop-search-form__btn:hover {
-  background: #1e40af;
+.shop-search-form__input--secondary:focus {
+  border-color: var(--shop-blue);
+  background: #fff;
+  color: #111827;
 }
 
-.shop-search-form__btn:active {
-  transform: scale(0.99);
-}
-
-/* ─── Date picker trigger (replaces native input for date fields) ─────────── */
+/* ─── Date picker trigger ─────────────────────────────────────────────────── */
 .shop-datepicker-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
+  min-width: 0;
   border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 14px;
-  color: #9ca3af; /* placeholder colour */
-  background: #f9fafb;
+  color: #9ca3af;
+  background: #fff;
   cursor: pointer;
   text-align: left;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
 }
 
-.shop-datepicker-trigger--selected {
-  color: #111827;
-  background: #fff;
+.shop-datepicker-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
+
+.shop-datepicker-trigger svg { flex-shrink: 0; }
+
+.shop-datepicker-trigger--selected { color: #111827; font-weight: 500; }
 
 .shop-datepicker-trigger:hover,
 .shop-datepicker-trigger:focus {
-  border-color: #1a56db;
-  background: #fff;
+  border-color: var(--shop-blue);
 }
 
 .shop-datepicker-trigger--error {
   border-color: #ef4444 !important;
 }
 
-/* ─── Centered range calendar popover ───────────────────────────────────── */
-/* Sits below the 4-field grid, centered within the card */
-.shop-datepicker-popover-centered {
-  margin-top: 12px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1.5px solid #e5e7eb;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
-  padding: 12px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: auto;
-}
-
-.shop-datepicker-hint {
-  font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-/* react-day-picker brand colour overrides */
-.shop-datepicker-popover-centered .rdp-root {
-  --rdp-accent-color: #1a56db;
-  --rdp-accent-background-color: #dbeafe;
-  --rdp-range-start-color: #fff;
-  --rdp-range-end-color: #fff;
-  --rdp-range-start-background: #1a56db;
-  --rdp-range-end-background: #1a56db;
-  --rdp-range-middle-background-color: #dbeafe;
-}
-
 /* ─── Inline validation error ────────────────────────────────────────────── */
 .shop-datepicker-error {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: #ef4444;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 /* ─── Search + button bottom row ─────────────────────────────────────────── */
@@ -342,45 +373,259 @@
   align-items: center;
 }
 
-.shop-search-text-icon {
+/* ─── Category dropdown ──────────────────────────────────────────────────── */
+.shop-category-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.shop-category-icon {
   position: absolute;
-  left: 12px;
+  left: 13px;
   color: #9ca3af;
   display: flex;
   align-items: center;
   pointer-events: none;
+  z-index: 1;
 }
 
-.shop-search-text-input {
+.shop-category-chevron {
+  position: absolute;
+  right: 13px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.shop-category-select {
   flex: 1;
   width: 100%;
   border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 11px 12px 11px 38px;
+  border-radius: 10px;
+  padding: 12px 40px 12px 38px;
   font-size: 14px;
+  font-weight: 500;
   color: #111827;
   background: #f9fafb;
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
 
-.shop-search-text-input::placeholder {
-  color: #9ca3af;
-}
-
-.shop-search-text-input:focus {
-  border-color: #1a56db;
+.shop-category-select:focus {
+  border-color: var(--shop-blue);
   background: #fff;
 }
 
-/* Tablet and below: stack search input above button */
+.shop-search-form__btn {
+  background: var(--shop-blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shop-search-form__btn:hover  { background: var(--shop-blue-dark); }
+.shop-search-form__btn:active { transform: scale(0.99); }
+
+/* ─── Date-picker overlay + modal (desktop) / bottom-sheet (mobile) ───────── */
+.shop-cal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.40);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+}
+
+/* Desktop: centered modal */
+.shop-cal-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 201;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  max-width: 95vw;
+  overflow: hidden;
+}
+
+.shop-cal-modal__handle { display: none; }
+
+.shop-cal-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.shop-cal-modal__hint {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.shop-cal-modal__close {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.shop-cal-modal__close:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.shop-cal-modal__body {
+  padding: 8px 16px;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* react-day-picker brand overrides */
+.shop-cal-modal__body .rdp-root {
+  --rdp-accent-color: var(--shop-blue);
+  --rdp-accent-background-color: #ede9fe;
+  --rdp-range-start-color: #fff;
+  --rdp-range-end-color: #fff;
+  --rdp-range-start-background: var(--shop-blue);
+  --rdp-range-end-background: var(--shop-blue);
+  --rdp-range-middle-background-color: #ede9fe;
+}
+
+.shop-cal-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #f0f0f5;
+}
+
+.shop-datepicker-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.shop-datepicker-btn--clear {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.shop-datepicker-btn--clear:hover { background: #e5e7eb; }
+
+.shop-datepicker-btn--ok {
+  background: var(--shop-blue);
+  color: #fff;
+}
+
+.shop-datepicker-btn--ok:hover { background: var(--shop-blue-dark); }
+
+/* Mobile: bottom sheet */
 @media (max-width: 640px) {
+  .shop-search-groups {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .shop-search-group {
+    width: 100%;
+  }
+
+  /* on mobile keep date dominant, time stays narrow */
+  .shop-search-group__fields {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  /* prevent placeholder text wrapping on narrow screens */
+  .shop-datepicker-trigger span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .shop-search-card {
+    padding: 20px 16px 18px;
+    border-radius: 16px;
+  }
+
+  .shop-search-group {
+    padding: 14px 14px;
+  }
+
+  .shop-search-group + .shop-search-arrow + .shop-search-group {
+    border-left: none;
+    border-top: 1.5px solid #e5e7eb;
+  }
+
+  .shop-search-arrow {
+    display: none;
+  }
+
   .shop-search-bottom-row {
     flex-direction: column;
   }
 
   .shop-search-form__btn {
     width: 100%;
+  }
+
+  /* bottom-sheet: slides up from bottom, full width */
+  .shop-cal-modal {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .shop-cal-modal__handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #d1d5db;
+    margin: 12px auto 4px;
   }
 }
 

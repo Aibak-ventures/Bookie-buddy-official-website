@@ -1,52 +1,22 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { DayPicker } from 'react-day-picker';
-import { format, startOfDay, isBefore, isAfter } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { clearProducts, setBaseParams } from '../../../store/slices/productsSlice';
+import { selectServices } from '../../../store/slices/shopSlice';
 import 'react-day-picker/style.css';
+import { CalendarIcon, ClockIcon, SearchIcon, XIcon, ChevronDownIcon, TagIcon } from './icons';
 
-// ---------- Icons ----------
-const CalendarIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
 
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-);
-
-// ---------- Helper: today at midnight ----------
+// ---------- Helpers ----------
 const today = startOfDay(new Date());
 
-// ---------- Hook: click outside to close ----------
-function useClickOutside(ref, onClose) {
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [ref, onClose]);
-}
-
-// ---------- Hook: responsive months (2 on desktop, 1 on mobile) ----------
 function useResponsiveMonths() {
-  const [months, setMonths] = useState(() => {
-    if (typeof window === 'undefined') return 1;
-    return window.innerWidth >= 768 ? 2 : 1;
-  });
+  const [months, setMonths] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 2 : 1
+  );
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     const handleResize = () => setMonths(window.innerWidth >= 768 ? 2 : 1);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -60,31 +30,30 @@ const ShopSearchForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Confirmed range (after OK)
+  const services = useSelector(selectServices);
+
   const [range, setRange] = useState({ from: undefined, to: undefined });
-  // Temporary range (while calendar is open)
   const [tempRange, setTempRange] = useState({ from: undefined, to: undefined });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [calendarKey, setCalendarKey] = useState(0); // forces remount on clear
+  const [calendarKey, setCalendarKey] = useState(0);
   const [pickupTime, setPickupTime] = useState('');
   const [returnTime, setReturnTime] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedServiceId, setSelectedServiceId] = useState('all');
   const [errors, setErrors] = useState({});
 
-  const calendarRef = useRef(null);
   const monthsCount = useResponsiveMonths();
 
   const closeCalendar = useCallback(() => setIsCalendarOpen(false), []);
-  useClickOutside(calendarRef, closeCalendar);
 
-  // ---------- Range selection logic (hotel‑style) ----------
-  const handleRangeSelect = (rangeOrDate) => {
-    // react-day-picker's onSelect gives { from, to } for range mode
-    if (!rangeOrDate) return;
-    const { from, to } = rangeOrDate;
-    setTempRange({ from, to });
-    setErrors({});
-  };
+  // Lock body scroll when modal open
+  useEffect(() => {
+    if (isCalendarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isCalendarOpen]);
 
   const openCalendar = () => {
     setTempRange({ from: range.from, to: range.to });
@@ -94,9 +63,6 @@ const ShopSearchForm = () => {
   const confirmDates = () => {
     if (tempRange.from && tempRange.to) {
       setRange({ from: tempRange.from, to: tempRange.to });
-    } else if (tempRange.from && !tempRange.to) {
-      // Only pickup selected – treat as invalid range (clear)
-      setRange({ from: undefined, to: undefined });
     } else {
       setRange({ from: undefined, to: undefined });
     }
@@ -106,7 +72,13 @@ const ShopSearchForm = () => {
 
   const clearDates = () => {
     setTempRange({ from: undefined, to: undefined });
-    setCalendarKey(prev => prev + 1);   // force calendar UI reset
+    setCalendarKey(prev => prev + 1);
+    setErrors({});
+  };
+
+  const handleRangeSelect = (rangeOrDate) => {
+    if (!rangeOrDate) return;
+    setTempRange({ from: rangeOrDate.from, to: rangeOrDate.to });
     setErrors({});
   };
 
@@ -130,6 +102,8 @@ const ShopSearchForm = () => {
     const pickupDateStr = format(range.from, 'yyyy-MM-dd');
     const returnDateStr = format(range.to, 'yyyy-MM-dd');
 
+    const serviceIds = selectedServiceId !== 'all' ? selectedServiceId : null;
+
     dispatch(clearProducts());
     dispatch(setBaseParams({
       publicToken,
@@ -144,9 +118,7 @@ const ShopSearchForm = () => {
     qs.set('return_date', returnDateStr);
     if (pickupTime) qs.set('pickup_time', pickupTime);
     if (returnTime) qs.set('return_time', returnTime);
-    if (searchQuery.trim()) {
-      qs.set('search_value', searchQuery.trim());
-    }
+    if (serviceIds) qs.set('service_ids', serviceIds);
 
     navigate(`/shop/${shopName}/${publicToken}/results?${qs.toString()}`);
   };
@@ -154,99 +126,163 @@ const ShopSearchForm = () => {
   const formatDate = (date) => (date ? format(date, 'dd MMM yyyy') : null);
   const hasError = errors.pickupDate || errors.returnDate;
 
+  const calendarHint = !tempRange.from
+    ? 'Select your pickup date'
+    : !tempRange.to
+    ? 'Now select your return date'
+    : `${formatDate(tempRange.from)}  →  ${formatDate(tempRange.to)}`;
+
   return (
-    <section className="shop-search-section">
-      <div className="shop-search-card">
-        <h2 className="shop-search-card__heading">Check Available Products</h2>
+    <>
+      <section className="shop-search-section">
+        <div className="shop-search-card">
+          <h2 className="shop-search-card__heading">Checkout our products</h2>
 
-        <form onSubmit={handleSubmit} className="shop-search-form" noValidate>
-          {/* Row 1: date + time fields */}
-          <div className="shop-search-form__grid">
-            {/* Pickup Date */}
-            <div className="shop-search-form__field">
-              <label className="shop-search-form__label">
-                <span className="shop-search-form__icon">📅</span>
-                Pickup Date <span className="shop-search-form__required">*</span>
-              </label>
-              <button
-                type="button"
-                className={`shop-datepicker-trigger${hasError && !range.from ? ' shop-datepicker-trigger--error' : ''}${range.from ? ' shop-datepicker-trigger--selected' : ''}`}
-                onClick={openCalendar}
-                aria-haspopup="dialog"
-                aria-expanded={isCalendarOpen}
-              >
-                <span>{formatDate(range.from) || 'Select date'}</span>
-                <CalendarIcon />
-              </button>
-              {errors.pickupDate && (
-                <span className="shop-datepicker-error" role="alert">{errors.pickupDate}</span>
-              )}
-            </div>
+          <form onSubmit={handleSubmit} className="shop-search-form" noValidate>
+            {/* Grouped pickup + return row */}
+            <div className="shop-search-groups">
 
-            {/* Pickup Time */}
-            <div className="shop-search-form__field">
-              <label htmlFor="pickupTime" className="shop-search-form__label">
-                <span className="shop-search-form__icon">⏰</span>
-                Pickup Time
-              </label>
-              <input
-                type="time"
-                id="pickupTime"
-                value={pickupTime}
-                onChange={(e) => setPickupTime(e.target.value)}
-                className="shop-search-form__input"
-              />
-            </div>
+              {/* ── Pickup group ── */}
+              <div className="shop-search-group">
+                <p className="shop-search-group__label">Pickup</p>
+                <div className="shop-search-group__fields">
+                  {/* Date — primary */}
+                  <div className="shop-search-form__field shop-search-form__field--date">
+                    <label className="shop-search-form__label">
+                      <CalendarIcon /> Date
+                      <span className="shop-search-form__required">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      className={[
+                        'shop-datepicker-trigger',
+                        hasError && !range.from ? 'shop-datepicker-trigger--error' : '',
+                        range.from ? 'shop-datepicker-trigger--selected' : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={openCalendar}
+                      aria-haspopup="dialog"
+                      aria-expanded={isCalendarOpen}
+                    >
+                      <span>{formatDate(range.from) || 'Select date'}</span>
+                      <CalendarIcon />
+                    </button>
+                    {errors.pickupDate && (
+                      <span className="shop-datepicker-error" role="alert">{errors.pickupDate}</span>
+                    )}
+                  </div>
 
-            {/* Return Date */}
-            <div className="shop-search-form__field">
-              <label className="shop-search-form__label">
-                <span className="shop-search-form__icon">📅</span>
-                Return Date <span className="shop-search-form__required">*</span>
-              </label>
-              <button
-                type="button"
-                className={`shop-datepicker-trigger${hasError && !range.to ? ' shop-datepicker-trigger--error' : ''}${range.to ? ' shop-datepicker-trigger--selected' : ''}`}
-                onClick={openCalendar}
-                aria-haspopup="dialog"
-                aria-expanded={isCalendarOpen}
-              >
-                <span>{formatDate(range.to) || 'Select date'}</span>
-                <CalendarIcon />
-              </button>
-              {errors.returnDate && (
-                <span className="shop-datepicker-error" role="alert">{errors.returnDate}</span>
-              )}
-            </div>
-
-            {/* Return Time */}
-            <div className="shop-search-form__field">
-              <label htmlFor="returnTime" className="shop-search-form__label">
-                <span className="shop-search-form__icon">⏰</span>
-                Return Time
-              </label>
-              <input
-                type="time"
-                id="returnTime"
-                value={returnTime}
-                onChange={(e) => setReturnTime(e.target.value)}
-                className="shop-search-form__input"
-              />
-            </div>
-          </div>
-
-          {/* Calendar Popover with Clear + OK */}
-          {isCalendarOpen && (
-            <div className="shop-datepicker-popover-centered" ref={calendarRef} role="dialog">
-              <div className="shop-datepicker-popover__header">
-                <p className="shop-datepicker-hint">
-                  {!tempRange.from
-                    ? '👆 Click a date to set your pickup date'
-                    : !tempRange.to
-                    ? '👆 Now click your return date'
-                    : `📅 ${formatDate(tempRange.from)} → ${formatDate(tempRange.to)}`}
-                </p>
+                  {/* Time — secondary */}
+                  <div className="shop-search-form__field shop-search-form__field--time">
+                    <label htmlFor="pickupTime" className="shop-search-form__label shop-search-form__label--secondary">
+                      <ClockIcon /> Time <span className="shop-search-form__optional">(optional)</span>
+                    </label>
+                    <input
+                      type="time"
+                      id="pickupTime"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                      className="shop-search-form__input shop-search-form__input--secondary"
+                    />
+                  </div>
+                </div>
               </div>
+
+              {/* Arrow divider */}
+              <div className="shop-search-arrow" aria-hidden="true">
+              </div>
+
+              {/* ── Return group ── */}
+              <div className="shop-search-group">
+                <p className="shop-search-group__label">Return</p>
+                <div className="shop-search-group__fields">
+                  {/* Date — primary */}
+                  <div className="shop-search-form__field shop-search-form__field--date">
+                    <label className="shop-search-form__label">
+                      <CalendarIcon /> Date
+                      <span className="shop-search-form__required">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      className={[
+                        'shop-datepicker-trigger',
+                        hasError && !range.to ? 'shop-datepicker-trigger--error' : '',
+                        range.to ? 'shop-datepicker-trigger--selected' : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={openCalendar}
+                      aria-haspopup="dialog"
+                      aria-expanded={isCalendarOpen}
+                    >
+                      <span>{formatDate(range.to) || 'Select date'}</span>
+                      <CalendarIcon />
+                    </button>
+                    {errors.returnDate && (
+                      <span className="shop-datepicker-error" role="alert">{errors.returnDate}</span>
+                    )}
+                  </div>
+
+                  {/* Time — secondary */}
+                  <div className="shop-search-form__field shop-search-form__field--time">
+                    <label htmlFor="returnTime" className="shop-search-form__label shop-search-form__label--secondary">
+                      <ClockIcon /> Time <span className="shop-search-form__optional">(optional)</span>
+                    </label>
+                    <input
+                      type="time"
+                      id="returnTime"
+                      value={returnTime}
+                      onChange={(e) => setReturnTime(e.target.value)}
+                      className="shop-search-form__input shop-search-form__input--secondary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>{/* end .shop-search-groups */}
+
+            {/* Category + submit */}
+            <div className="shop-search-bottom-row">
+              <div className="shop-category-wrapper">
+                <span className="shop-category-icon"><TagIcon /></span>
+                <select
+                  value={selectedServiceId}
+                  onChange={(e) => setSelectedServiceId(e.target.value)}
+                  className="shop-category-select"
+                >
+                  <option value="all">All Categories</option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>{s.service_name}</option>
+                  ))}
+                </select>
+                <span className="shop-category-chevron"><ChevronDownIcon /></span>
+              </div>
+              <button type="submit" className="shop-search-form__btn">
+                <SearchIcon size={16} /> Search available items
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* ── Date picker modal / bottom-sheet ── */}
+      {isCalendarOpen && (
+        <>
+          <div className="shop-cal-overlay" onClick={closeCalendar} aria-hidden="true" />
+          <div className="shop-cal-modal" role="dialog" aria-modal="true" aria-label="Select dates">
+            {/* drag handle visible on mobile only */}
+            <div className="shop-cal-modal__handle" aria-hidden="true" />
+
+            <div className="shop-cal-modal__header">
+              <span className="shop-cal-modal__hint">{calendarHint}</span>
+              <button
+                type="button"
+                className="shop-cal-modal__close"
+                onClick={closeCalendar}
+                aria-label="Close calendar"
+              >
+                <XIcon />
+              </button>
+            </div>
+
+            <div className="shop-cal-modal__body">
               <DayPicker
                 key={calendarKey}
                 mode="range"
@@ -256,36 +292,20 @@ const ShopSearchForm = () => {
                 defaultMonth={tempRange.from || today}
                 numberOfMonths={monthsCount}
               />
-              <div className="shop-datepicker-popover__actions">
-                <button type="button" onClick={clearDates} className="shop-datepicker-btn shop-datepicker-btn--clear">
-                  Clear
-                </button>
-                <button type="button" onClick={confirmDates} className="shop-datepicker-btn shop-datepicker-btn--ok">
-                  OK
-                </button>
-              </div>
             </div>
-          )}
 
-          {/* Search + Submit */}
-          <div className="shop-search-bottom-row">
-            <div className="shop-search-text-wrapper">
-              <span className="shop-search-text-icon"><SearchIcon /></span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products, services…"
-                className="shop-search-text-input"
-              />
+            <div className="shop-cal-modal__footer">
+              <button type="button" onClick={clearDates} className="shop-datepicker-btn shop-datepicker-btn--clear">
+                Clear
+              </button>
+              <button type="button" onClick={confirmDates} className="shop-datepicker-btn shop-datepicker-btn--ok">
+                Confirm Dates
+              </button>
             </div>
-            <button type="submit" className="shop-search-form__btn">
-              Search Availability
-            </button>
           </div>
-        </form>
-      </div>
-    </section>
+        </>
+      )}
+    </>
   );
 };
 

@@ -99,6 +99,7 @@ const ResultsPage = () => {
 
     if (alreadyLoaded) return;
 
+    const urlServiceIds = searchParams.get('service_ids') || null;
     const freshBase = {
       pickup_date: urlPickup  || '',
       return_date: urlReturn  || '',
@@ -107,6 +108,7 @@ const ResultsPage = () => {
     };
     const freshFilters = {
       search_value: searchParams.get('search_value') || null,
+      service_ids:  urlServiceIds,
       service_id:   null,
       min_price:    null,
       max_price:    null,
