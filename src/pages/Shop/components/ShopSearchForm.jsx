@@ -6,7 +6,7 @@ import { format, startOfDay } from 'date-fns';
 import { clearProducts, setBaseParams } from '../../../store/slices/productsSlice';
 import { selectServices } from '../../../store/slices/shopSlice';
 import 'react-day-picker/style.css';
-import { CalendarIcon, ClockIcon, SearchIcon, XIcon, ChevronDownIcon, TagIcon } from './icons';
+import { Calendar as CalendarIcon, ClockCircle as ClockIcon, MinimalisticMagnifier as SearchIcon, CloseCircle as XIcon, AltArrowDown as ChevronDownIcon, Tag as TagIcon } from '@solar-icons/react';
 
 
 // ---------- Helpers ----------
