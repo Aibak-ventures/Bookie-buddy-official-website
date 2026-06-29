@@ -21,6 +21,7 @@ import ShopHeader        from '../components/ShopHeader';
 import ServiceFilter     from './components/ServiceFilter';
 import SearchParamsPanel from './components/SearchParamsPanel';
 import PriceFilter       from './components/PriceFilter';
+import PlaceFilter       from './components/PlaceFilter';
 import ProductGrid       from './components/ProductGrid';
 import Pagination        from './components/Pagination';
 import ResultsHeader     from './components/ResultsHeader';
@@ -58,6 +59,7 @@ const ResultsPage = () => {
   const [localReturnTime, setLocalReturnTime] = useState(baseParams.return_time || '');
   const [localMinPrice,   setLocalMinPrice]   = useState(activeFilters.min_price || '');
   const [localMaxPrice,   setLocalMaxPrice]   = useState(activeFilters.max_price || '');
+  const [localShopIds,    setLocalShopIds]    = useState(activeFilters.shop_ids ?? []);
 
   // Validation states
   const [isDateRangeValid, setIsDateRangeValid] = useState(true);
@@ -78,7 +80,8 @@ const ResultsPage = () => {
   useEffect(() => {
     setLocalMinPrice(activeFilters.min_price || '');
     setLocalMaxPrice(activeFilters.max_price || '');
-  }, [activeFilters.min_price, activeFilters.max_price]);
+    setLocalShopIds(activeFilters.shop_ids ?? []);
+  }, [activeFilters.min_price, activeFilters.max_price, activeFilters.shop_ids]);
 
   // Load shop info if missing
   useEffect(() => {
@@ -163,6 +166,7 @@ const ResultsPage = () => {
     const newFilters = {
       min_price: localMinPrice || null,
       max_price: localMaxPrice || null,
+      shop_ids:  localShopIds.length ? localShopIds : null,
     };
     dispatch(setActiveFilters(newFilters));
     doFetch(newFilters, newBase);
@@ -198,6 +202,7 @@ const ResultsPage = () => {
             filtersOpen={filtersOpen}
             onFiltersToggle={() => setFiltersOpen((o) => !o)}
             onSearch={handleSearch}
+            initialSearch={searchParams.get('search_value') || activeFilters.search_value || ''}
           />
         </div>
 
@@ -230,6 +235,13 @@ const ResultsPage = () => {
               setMaxPrice={setLocalMaxPrice}
               onValidityChange={handlePriceValidityChange}
             />
+            {isOrganization && associatedShops.length > 0 && (
+              <PlaceFilter
+                shops={associatedShops}
+                selectedIds={localShopIds}
+                onChange={setLocalShopIds}
+              />
+            )}
             <button
               type="button"
               className="search-params-btn"

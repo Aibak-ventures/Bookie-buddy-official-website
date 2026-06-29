@@ -14,6 +14,7 @@ import { API_BASE_URL } from '../config';
  *   service_id     {number|string} optional
  *   min_price      {number|string} optional
  *   max_price      {number|string} optional
+ *   shop_ids       {string} optional — comma-separated shop ids e.g. "7,49"
  */
 export async function fetchProducts(publicToken, params = {}) {
   const qs = new URLSearchParams();
@@ -33,6 +34,7 @@ export async function fetchProducts(publicToken, params = {}) {
   append('service_ids',  params.service_ids);
   append('min_price',    params.min_price);
   append('max_price',    params.max_price);
+  append('shop_ids',     params.shop_ids);
 
   const url = `${API_BASE_URL}/api/v3/public/shops/${publicToken}/products/?${qs.toString()}`;
   const response = await fetch(url);

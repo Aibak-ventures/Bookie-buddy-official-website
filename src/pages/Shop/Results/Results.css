@@ -82,6 +82,39 @@
   color: #1a56db;
 }
 
+/* View toggle buttons (grid / list) */
+.results-header__view {
+  display: flex;
+  gap: 2px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.results-header__view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.results-header__view-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.results-header__view-btn.active {
+  background: #fff;
+  color: #1a56db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
+}
+
 /* View toggle – hide on mobile, show on desktop (inside actions) */
 .results-header__view-toggle {
   display: flex;
@@ -392,6 +425,89 @@
 }
 
 .price-filter__btn--clear:hover { background: #e5e7eb; }
+
+/* ─── Sidebar: place filter ─────────────────────────────────────────────── */
+.place-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.place-filter__heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.place-filter__icon {
+  width: 15px;
+  height: 15px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.place-filter__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-filter__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.place-filter__option:hover { background: #f3f4f6; }
+
+.place-filter__option--checked { color: #1a56db; font-weight: 500; }
+
+.place-filter__checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: #1a56db;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.place-filter__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.place-filter__btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.place-filter__btn--clear {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.place-filter__btn--clear:hover { background: #e5e7eb; }
 
 /* ─── Product grid ───────────────────────────────────────────────────────── */
 .product-grid {

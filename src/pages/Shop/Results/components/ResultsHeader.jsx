@@ -96,9 +96,9 @@ const SearchIcon = () => (
   </svg>
 );
 
-const ResultsHeader = ({ count, viewMode, onViewChange, filtersOpen, onFiltersToggle, onSearch }) => {
-  const [searchActive, setSearchActive] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+const ResultsHeader = ({ count, viewMode, onViewChange, filtersOpen, onFiltersToggle, onSearch, initialSearch = '' }) => {
+  const [searchActive, setSearchActive] = useState(!!initialSearch);
+  const [searchValue,  setSearchValue]  = useState(initialSearch);
   const inputRef = useRef(null);
   const timerRef = useRef(null);
 
