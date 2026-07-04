@@ -1,4 +1,10 @@
 /* ─── Shop page CSS variables ─────────────────────────────────────────────── */
+:root {
+  --shop-blue:       #7d56e7;
+  --shop-blue-dark:  #6132E4;
+  --shop-blue-light: #8661F3;
+}
+
 .shop-page {
   --shop-blue:       #7d56e7;
   --shop-blue-dark:  #6132E4;
@@ -443,6 +449,7 @@
 
 .shop-search-form__btn:hover  { background: var(--shop-blue-dark); }
 .shop-search-form__btn:active { transform: scale(0.99); }
+.shop-search-form__btn--full  { width: 100%; justify-content: center; margin-top: 8px; }
 
 /* ─── Date-picker overlay + modal (desktop) / bottom-sheet (mobile) ───────── */
 .shop-cal-overlay {

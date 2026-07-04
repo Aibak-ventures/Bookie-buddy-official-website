@@ -162,6 +162,7 @@ export const { setBaseParams, setActiveFilters, goToPrevPage, clearProducts } = 
 
 // ── Selectors ────────────────────────────────────────────────────────────────
 export const selectProducts          = (s) => s.products.pages[s.products.currentPageIndex]?.products ?? [];
+export const selectAllProducts       = (s) => s.products.pages.flatMap((p) => p.products);
 export const selectProductsLoading   = (s) => s.products.loading;
 export const selectProductsError     = (s) => s.products.error;
 export const selectProductsNext      = (s) => s.products.pages[s.products.currentPageIndex]?.next ?? null;

@@ -8,8 +8,10 @@ import { format, parse, isValid } from 'date-fns';
 import { fetchShopInfoThunk } from '../../../store/slices/shopSlice';
 import {
   fetchProductsThunk,
+  goToNextPageThunk,
   setActiveFilters,
   selectProducts,
+  selectAllProducts,
   selectProductsLoading,
   selectProductsError,
   selectProductsNext,
@@ -90,18 +92,19 @@ function fmtReadable(str) {
 }
 
 // ─── Edit sheet — wraps ShopSearchForm ───────────────────────────────────────
-const EditDateSheet = ({ onClose }) => (
+const EditDateSheet = ({ baseParams, onClose }) => (
   <>
     <div className="results-edit-overlay" onClick={onClose} aria-hidden="true" />
     <div className="results-edit-sheet" role="dialog" aria-modal="true" aria-label="Edit search">
-      <div className="results-edit-sheet__header">
-        <h3 className="results-edit-sheet__title">Edit Search</h3>
-        <button type="button" className="results-edit-sheet__close" onClick={onClose} aria-label="Close">
-          <XIcon size={22} />
-        </button>
-      </div>
       <div className="results-edit-sheet__body">
-        <ShopSearchForm />
+        <ShopSearchForm
+          compact
+          initialPickupDate={baseParams.pickup_date}
+          initialReturnDate={baseParams.return_date}
+          initialPickupTime={baseParams.pickup_time}
+          initialReturnTime={baseParams.return_time}
+          onAfterSubmit={onClose}
+        />
       </div>
     </div>
   </>
@@ -127,10 +130,35 @@ const ResultsPage = () => {
   const isLoaded        = useSelector(selectIsLoaded);
   const baseParams      = useSelector(selectBaseParams);
   const activeFilters   = useSelector(selectActiveFilters);
+  const allProducts     = useSelector(selectAllProducts);
 
   const [viewMode,      setViewMode]      = useState('grid');
   const [filtersOpen,   setFiltersOpen]   = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+
+  // Detect mobile/tablet (≤1024px) for infinite scroll
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    if (!isMobile || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && nextUrl && !loading) {
+          dispatch(goToNextPageThunk());
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, nextUrl, loading, dispatch]);
 
   const [localPickupDate, setLocalPickupDate] = useState(baseParams.pickup_date || '');
   const [localReturnDate, setLocalReturnDate] = useState(baseParams.return_date || '');
@@ -288,22 +316,66 @@ const ResultsPage = () => {
           </aside>
 
           <main className="results-main">
-            {loading && (
-              <div className="results-loading">
-                <div className="results-spinner" />
-                <p>Loading products…</p>
-              </div>
-            )}
             {error && !loading && (
               <div className="results-error">
                 <p><WarningIcon size={16} /> {error}</p>
                 <button type="button" className="results-retry-btn" onClick={() => doFetch()}>Retry</button>
               </div>
             )}
-            {!loading && !error && (
+
+            {isMobile ? (
+              /* ── Infinite scroll (mobile/tablet) ── */
               <>
-                <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} associatedShops={associatedShops} />
-                <Pagination next={nextUrl} previous={prevUrl} />
+                <ProductGrid products={allProducts} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} associatedShops={associatedShops} />
+                {loading && (
+                  <div className="results-load-more">
+                    <div className="results-spinner" />
+                    <span>Loading more products…</span>
+                  </div>
+                )}
+                {nextUrl && !loading && (
+                  <div className="results-more-hint">
+                    <span className="results-more-hint__dots"><span /><span /><span /></span>
+                    <span>More products below</span>
+                  </div>
+                )}
+                {!nextUrl && !loading && allProducts.length > 0 && (
+                  <div className="results-all-caught">
+                    <span className="results-all-caught__line" />
+                    <span className="results-all-caught__text">You're all caught up</span>
+                    <span className="results-all-caught__line" />
+                  </div>
+                )}
+                <div ref={sentinelRef} style={{ height: 1 }} />
+              </>
+            ) : (
+              /* ── Pagination (desktop) ── */
+              <>
+                {loading && (
+                  <div className="results-loading">
+                    <div className="results-spinner" />
+                    <p>Loading products…</p>
+                  </div>
+                )}
+                {!loading && !error && (
+                  <>
+                    <ProductGrid products={products} viewMode={viewMode} shop={shop} baseParams={baseParams} isOrganization={isOrganization} associatedShops={associatedShops} />
+                    {nextUrl && (
+                      <div className="results-more-hint">
+                        <span className="results-more-hint__dots"><span /><span /><span /></span>
+                        <span>More products on next page</span>
+                      </div>
+                    )}
+                    {!nextUrl && !prevUrl === false && (
+                      <div className="results-all-caught">
+                        <span className="results-all-caught__line" />
+                        <span className="results-all-caught__text">You're all caught up</span>
+                        <span className="results-all-caught__line" />
+                      </div>
+                    )}
+                    <Pagination next={nextUrl} previous={prevUrl} />
+                  </>
+                )}
               </>
             )}
           </main>
@@ -312,7 +384,7 @@ const ResultsPage = () => {
 
       {/* Edit sheet — portalled so it's never trapped inside any container */}
       {editSheetOpen && createPortal(
-        <EditDateSheet onClose={() => setEditSheetOpen(false)} />,
+        <EditDateSheet baseParams={baseParams} onClose={() => setEditSheetOpen(false)} />,
         document.body
       )}
     </div>
