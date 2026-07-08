@@ -35,6 +35,7 @@ import {
 import ServiceFilter     from './components/ServiceFilter';
 import SearchParamsPanel from './components/SearchParamsPanel';
 import PriceFilter       from './components/PriceFilter';
+import FilterSheet       from './components/FilterSheet';
 import ProductGrid       from './components/ProductGrid';
 import Pagination        from './components/Pagination';
 import ResultsHeader     from './components/ResultsHeader';
@@ -76,6 +77,7 @@ const ResultsSearchBar = ({ onSearch, filtersOpen, onFiltersToggle }) => {
         <span>Filters</span>
       </button>
     </div>
+    
   );
 };
 
@@ -132,9 +134,10 @@ const ResultsPage = () => {
   const activeFilters   = useSelector(selectActiveFilters);
   const allProducts     = useSelector(selectAllProducts);
 
-  const [viewMode,      setViewMode]      = useState('grid');
-  const [filtersOpen,   setFiltersOpen]   = useState(false);
-  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [viewMode,         setViewMode]         = useState('grid');
+  const [filtersOpen,      setFiltersOpen]      = useState(false);
+  const [filterSheetOpen,  setFilterSheetOpen]  = useState(false);
+  const [editSheetOpen,    setEditSheetOpen]    = useState(false);
 
   // Detect mobile/tablet (≤1024px) for infinite scroll
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
@@ -144,13 +147,18 @@ const ResultsPage = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Infinite scroll sentinel
-  const sentinelRef = useRef(null);
+  // Infinite scroll sentinel — stable observer, state via refs to avoid recreating on every change
+  const sentinelRef  = useRef(null);
+  const nextUrlRef   = useRef(nextUrl);
+  const loadingRef   = useRef(loading);
+  useEffect(() => { nextUrlRef.current = nextUrl; }, [nextUrl]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+
   useEffect(() => {
     if (!isMobile || !sentinelRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && nextUrl && !loading) {
+        if (entries[0].isIntersecting && nextUrlRef.current && !loadingRef.current) {
           dispatch(goToNextPageThunk());
         }
       },
@@ -158,7 +166,7 @@ const ResultsPage = () => {
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [isMobile, nextUrl, loading, dispatch]);
+  }, [isMobile, dispatch]); // stable — never recreated after mount
 
   const [localPickupDate, setLocalPickupDate] = useState(baseParams.pickup_date || '');
   const [localReturnDate, setLocalReturnDate] = useState(baseParams.return_date || '');
@@ -292,7 +300,11 @@ const ResultsPage = () => {
         />
 
         {/* Full-width search bar */}
-        <ResultsSearchBar onSearch={handleSearch} filtersOpen={filtersOpen} onFiltersToggle={() => setFiltersOpen((o) => !o)} />
+        <ResultsSearchBar
+          onSearch={handleSearch}
+          filtersOpen={isMobile ? filterSheetOpen : filtersOpen}
+          onFiltersToggle={() => isMobile ? setFilterSheetOpen((o) => !o) : setFiltersOpen((o) => !o)}
+        />
 
         {/* Two-column layout */}
         <div className="results-layout">
@@ -387,6 +399,22 @@ const ResultsPage = () => {
         <EditDateSheet baseParams={baseParams} onClose={() => setEditSheetOpen(false)} />,
         document.body
       )}
+
+      {/* Filter sheet — mobile/tablet only */}
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        minPrice={localMinPrice}
+        maxPrice={localMaxPrice}
+        selectedShopIds={activeFilters.shop_ids ?? []}
+        locations={associatedShops ?? []}
+        onApply={({ min_price, max_price, shop_ids }) => {
+          setLocalMinPrice(min_price || '');
+          setLocalMaxPrice(max_price || '');
+          dispatch(setActiveFilters({ min_price, max_price, shop_ids: shop_ids ?? null }));
+          doFetch({ min_price, max_price, shop_ids: shop_ids ?? null });
+        }}
+      />
     </div>
   );
 };
