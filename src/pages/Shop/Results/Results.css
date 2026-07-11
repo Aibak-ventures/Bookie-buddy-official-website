@@ -30,22 +30,31 @@
   flex: 1;
 }
 
-/* Back arrow icon only — no text */
+/* Back button — icon only on mobile, icon + label on desktop */
 .results-back-btn {
   background: none;
   border: none;
   color: var(--shop-blue);
   cursor: pointer;
-  padding: 6px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
+  gap: 5px;
   flex-shrink: 0;
   border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
   transition: background 0.15s;
 }
 
-.results-back-btn:hover {
-  background: #f3f0ff;
+.results-back-btn:hover { background: #f3f0ff; }
+
+.results-back-btn__label {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .results-back-btn__label { display: inline; }
 }
 
 /* Date preview — hidden on desktop, visible on tablet/mobile */
@@ -627,24 +636,142 @@ border-color: #c4b5f8;
   }
 }
 
-/* ─── Sidebar (mobile sliding panel) ────────────────────────────────────── */
-/* Sidebar — desktop only (date preview hidden ≥1025px) */
+/* ─── Desktop sidebar ────────────────────────────────────────────────────── */
 .results-sidebar {
   display: none;
   flex-direction: column;
-  gap: 20px;
   position: sticky;
   top: 80px;
-  padding: 16px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1.5px solid #e5e7eb;
+  overflow: hidden;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 @media (min-width: 1025px) {
-  .results-sidebar {
-    display: flex;
-  }
+  .results-sidebar { display: flex; }
+}
+
+.sidebar-section {
+  padding: 18px 18px 4px;
+}
+
+.sidebar-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-section__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--shop-blue);
+  background: #f3f0ff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 12px 0 0;
+}
+
+.sidebar-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 6px;
+}
+
+.sidebar-date-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sidebar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 0;
+}
+
+.sidebar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-required { color: #ef4444; margin-left: 2px; }
+.sidebar-optional { color: #9ca3af; font-weight: 400; font-size: 11px; }
+
+.sidebar-input {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+  background: #fff;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.sidebar-input:focus {
+  border-color: var(--shop-blue);
+  box-shadow: 0 0 0 3px rgba(125, 86, 231, 0.1);
+}
+
+/* Sidebar date trigger — shrink the shared shop-datepicker-trigger to fit sidebar columns */
+.sidebar-clear-btn { flex: 1; }
+
+.sidebar-datepicker-trigger {
+  padding: 7px 8px;
+  font-size: 12px;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+.sidebar-datepicker-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-error {
+  font-size: 12px;
+  color: #ef4444;
+  margin: 4px 0 8px;
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px 18px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 4px;
+}
+
+.sidebar-actions .filter-sheet__btn {
+  padding: 10px 12px;
+  font-size: 13px;
 }
 
 /* ─── Two-column layout ──────────────────────────────────────────────────── */
@@ -656,7 +783,7 @@ border-color: #c4b5f8;
 
 @media (min-width: 1025px) {
   .results-layout {
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 300px 1fr;
     gap: 24px;
     align-items: start;
   }
