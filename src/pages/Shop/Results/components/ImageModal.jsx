@@ -35,13 +35,9 @@ const ImageModal = ({ src, alt, onClose }) => {
       <div
         className={`image-modal-content${zoomed ? ' image-modal-content--zoomed' : ''}`}
         onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
-        title={zoomed ? 'Click to zoom out' : 'Click to zoom in'}
       >
         <img src={src} alt={alt} className="image-modal-img" draggable={false} />
       </div>
-      {!zoomed && (
-        <p className="image-modal-hint">Click image to zoom · Press Esc to close</p>
-      )}
     </div>
   );
 };

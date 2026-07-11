@@ -42,7 +42,7 @@ import ResultsHeader     from './components/ResultsHeader';
 import './Results.css';
 
 // ─── Full-width search bar ────────────────────────────────────────────────────
-const ResultsSearchBar = ({ onSearch, filtersOpen, onFiltersToggle }) => {
+const ResultsSearchBar = ({ onSearch, filtersOpen, filtersActive, onFiltersToggle }) => {
   const [value, setValue] = useState('');
   const timerRef = useRef(null);
 
@@ -69,7 +69,7 @@ const ResultsSearchBar = ({ onSearch, filtersOpen, onFiltersToggle }) => {
       )}
       <div className="results-fullsearch__divider" />
       <button
-        className={`results-fullsearch__filter${filtersOpen ? ' active' : ''}`}
+        className={`results-fullsearch__filter${filtersOpen || filtersActive ? ' active' : ''}`}
         onClick={onFiltersToggle}
         aria-label="Toggle filters"
       >
@@ -220,7 +220,6 @@ const ResultsPage = () => {
       activeFilters: {
         search_value: searchParams.get('search_value') || null,
         service_ids:  urlServiceIds,
-        service_id:   null,
         min_price:    null,
         max_price:    null,
       },
@@ -241,13 +240,8 @@ const ResultsPage = () => {
   }, [publicToken, baseParams, activeFilters, dispatch]);
 
   const handleServiceSelect = (serviceId) => {
-    if (serviceId && String(serviceId).includes(',')) {
-      dispatch(setActiveFilters({ service_ids: serviceId, service_id: null }));
-      doFetch({ service_ids: serviceId, service_id: null });
-    } else {
-      dispatch(setActiveFilters({ service_id: serviceId, service_ids: null }));
-      doFetch({ service_id: serviceId, service_ids: null });
-    }
+    dispatch(setActiveFilters({ service_ids: serviceId || null }));
+    doFetch({ service_ids: serviceId || null });
   };
 
   const handleSearch = (keyword) => {
@@ -295,7 +289,7 @@ const ResultsPage = () => {
         {/* Service chips */}
         <ServiceFilter
           services={services}
-          selectedId={activeFilters.service_ids ?? activeFilters.service_id ?? null}
+          selectedId={activeFilters.service_ids ?? null}
           onSelect={handleServiceSelect}
         />
 
@@ -303,6 +297,7 @@ const ResultsPage = () => {
         <ResultsSearchBar
           onSearch={handleSearch}
           filtersOpen={isMobile ? filterSheetOpen : filtersOpen}
+          filtersActive={!!(activeFilters.min_price || activeFilters.max_price || (activeFilters.shop_ids?.length > 0))}
           onFiltersToggle={() => isMobile ? setFilterSheetOpen((o) => !o) : setFiltersOpen((o) => !o)}
         />
 
@@ -413,6 +408,12 @@ const ResultsPage = () => {
           setLocalMaxPrice(max_price || '');
           dispatch(setActiveFilters({ min_price, max_price, shop_ids: shop_ids ?? null }));
           doFetch({ min_price, max_price, shop_ids: shop_ids ?? null });
+        }}
+        onClearAll={() => {
+          setLocalMinPrice('');
+          setLocalMaxPrice('');
+          dispatch(setActiveFilters({ min_price: null, max_price: null, shop_ids: null }));
+          doFetch({ min_price: null, max_price: null, shop_ids: null });
         }}
       />
     </div>

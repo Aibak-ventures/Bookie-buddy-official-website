@@ -10,6 +10,7 @@ const FilterSheet = ({
   selectedShopIds = [],  // number[]
   locations = [],        // [{ id, place }] — associatedShops from Redux
   onApply,
+  onClearAll,
 }) => {
   const [localMin,      setLocalMin]      = useState(minPrice || '');
   const [localMax,      setLocalMax]      = useState(maxPrice || '');
@@ -49,6 +50,8 @@ const FilterSheet = ({
     setLocalMax('');
     setLocalShopIds([]);
     setPriceError('');
+    onClearAll?.();
+    onClose();
   };
 
   const handleApply = () => {

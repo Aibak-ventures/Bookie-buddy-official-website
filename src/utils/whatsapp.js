@@ -56,8 +56,11 @@ export function buildBookingWhatsAppUrl(product, shop, baseParams = {}) {
   if (returnDate) lines.push(`Return Date: ${returnDate}`);
   if (returnTime) lines.push(`Return Time: ${returnTime}`);
 
-  if (product?.price) lines.push(`Price: ${product.price}`);
+  if (product?.price) lines.push(`Price: ₹${product.price}`);
   if (product?.sku)   lines.push(`Reference: ${product.sku}`);
+
+  const imageUrl = product?.image || product?.thumbnail_image;
+  if (imageUrl) lines.push('', `Product Image: ${imageUrl}`);
 
   lines.push('', 'Please let me know the availability and next steps.');
 
