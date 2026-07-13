@@ -1,55 +1,65 @@
 /**
- * shareProduct — shares a product using the best available browser API.
+ * shareProduct — opens the OS native share sheet with image + text.
  *
- * Strategy (in priority order):
- *  1. Web Share API (text + URL) — called BEFORE any await to preserve the
- *     browser's transient user-gesture activation on mobile. Opens the native
- *     share sheet (WhatsApp, Telegram, Instagram, etc.) on Android & iOS.
- *     Requires a secure context (HTTPS / localhost).
- *  2. Clipboard writeText — for desktop browsers without navigator.share
- *     (e.g. Firefox). Copies the product URL; caller shows a "Copied!" toast.
- *  3. Unsupported — nothing could be done.
- *
- * @param {object} opts
- * @param {string} opts.name            — product name (share title)
- * @param {string} [opts.description]   — short description / category
- * @param {string} [opts.productUrl]    — URL to share; defaults to window.location.href
- *
- * @returns {Promise<{ method: 'native-text'|'clipboard'|'unsupported', error?: string }>}
+ * Strategy:
+ *  1. Fetch image blob (CORS) → navigator.share({ files, title, text }) — image share on Android/iOS.
+ *  2. navigator.share({ title, text }) — text-only native sheet if image fetch fails.
+ *  3. Clipboard writeText — desktop fallback.
  */
-export async function shareProduct({ name, description, productUrl }) {
+export async function shareProduct({ name, description, imageUrl }) {
   const title = name || 'Product';
-  const text  = description ? `${name}\n${description}` : name || '';
-  const url   = productUrl || window.location.href;
+  const text  = description || '';
 
-  // ── 1. Native share (text + URL) ─────────────────────────────────────────
-  // Must be called BEFORE any await so that the browser's transient user
-  // activation (user gesture) is still valid. On mobile this opens the system
-  // share sheet; WhatsApp/Telegram/etc pre-fill with the product details.
+  // Try image blob share first
+  if (imageUrl && typeof navigator.share === 'function' && navigator.canShare) {
+    try {
+      const blob = await _fetchImageBlob(imageUrl);
+      if (blob) {
+        const ext  = _guessExt(imageUrl);
+        const file = new File([blob], `product.${ext}`, { type: blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title, text });
+          return { method: 'native-image' };
+        }
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return { method: 'native-image', error: 'cancelled' };
+      // fall through to text share
+    }
+  }
+
+  // Text-only native share
   if (typeof navigator.share === 'function') {
     try {
-      await navigator.share({ title, text, url });
+      await navigator.share({ title, text });
       return { method: 'native-text' };
     } catch (err) {
-      if (err.name === 'AbortError') {
-        // User dismissed the share sheet — not an error.
-        return { method: 'native-text', error: 'cancelled' };
-      }
-      // NotAllowedError, SecurityError, etc. — fall through to clipboard.
+      if (err.name === 'AbortError') return { method: 'native-text', error: 'cancelled' };
+      // fall through to clipboard
     }
   }
 
-  // ── 2. Clipboard fallback ─────────────────────────────────────────────────
-  // Handles desktop browsers that don't support navigator.share (e.g. Firefox).
-  // Requires a secure context (HTTPS / localhost).
+  return _clipboardFallback(text || title);
+}
+
+async function _fetchImageBlob(url) {
+  const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+  if (!res.ok) return null;
+  return res.blob();
+}
+
+function _guessExt(url) {
+  const m = url.split('?')[0].match(/\.(\w+)$/);
+  if (!m) return 'jpg';
+  const e = m[1].toLowerCase();
+  return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(e) ? e : 'jpg';
+}
+
+function _clipboardFallback(text) {
   if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(url);
-      return { method: 'clipboard' };
-    } catch {
-      // Clipboard permission denied — fall through.
-    }
+    return navigator.clipboard.writeText(text)
+      .then(() => ({ method: 'clipboard' }))
+      .catch(() => ({ method: 'unsupported' }));
   }
-
-  return { method: 'unsupported' };
+  return Promise.resolve({ method: 'unsupported' });
 }

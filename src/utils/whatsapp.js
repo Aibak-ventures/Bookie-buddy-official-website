@@ -29,7 +29,24 @@ function formatBookingTime(timeStr) {
  * @param {object} baseParams — current search params (pickup_date, pickup_time, return_date, return_time)
  * @returns {string|null} the wa.me URL, or null if the shop has no phone number on file
  */
-export function buildBookingWhatsAppUrl(product, shop, baseParams = {}) {
+/** Shorten a URL via TinyURL. Returns the short URL, or the original on failure. */
+export async function shortenUrl(url) {
+  try {
+    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return url;
+    const short = await res.text();
+    return short.startsWith('http') ? short : url;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Builds a wa.me URL pre-filled with a booking enquiry message.
+ * Pass a pre-shortened imageUrl (or null) — shortening is done by the caller
+ * so it can be async without blocking the URL build.
+ */
+export function buildBookingWhatsAppUrl(product, shop, baseParams = {}, shortImageUrl = null) {
   const phone = shop?.phone;
   if (!phone) return null;
 
@@ -45,6 +62,8 @@ export function buildBookingWhatsAppUrl(product, shop, baseParams = {}) {
   ];
 
   if (product?.category) lines.push(`Category: ${product.category}`);
+  if (product?.model)    lines.push(`Model: ${product.model}`);
+  if (product?.color)    lines.push(`Color: ${product.color}`);
 
   const pickupDate = formatBookingDate(baseParams.pickup_date);
   const pickupTime = formatBookingTime(baseParams.pickup_time);
@@ -59,8 +78,8 @@ export function buildBookingWhatsAppUrl(product, shop, baseParams = {}) {
   if (product?.price) lines.push(`Price: ₹${product.price}`);
   if (product?.sku)   lines.push(`Reference: ${product.sku}`);
 
-  const imageUrl = product?.image || product?.thumbnail_image;
-  if (imageUrl) lines.push('', `Product Image: ${imageUrl}`);
+  const imageUrl = shortImageUrl || product?.image || product?.thumbnail_image;
+  if (imageUrl) lines.push('', `Product Image: ${imageUrl.replace(/ /g, '%20')}`);
 
   lines.push('', 'Please let me know the availability and next steps.');
 

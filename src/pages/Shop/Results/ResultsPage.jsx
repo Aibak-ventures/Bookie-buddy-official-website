@@ -166,6 +166,22 @@ const ResultsPage = () => {
 
   // Infinite scroll sentinel — stable observer, state via refs to avoid recreating on every change
   const sentinelRef  = useRef(null);
+  const mainRef      = useRef(null);
+  const [searchHidden, setSearchHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const y = el.scrollTop;
+      setSearchHidden(y > lastScrollY.current && y > 60);
+      lastScrollY.current = y;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
   const nextUrlRef   = useRef(nextUrl);
   const loadingRef   = useRef(loading);
   useEffect(() => { nextUrlRef.current = nextUrl; }, [nextUrl]);
@@ -362,15 +378,6 @@ const ResultsPage = () => {
           onSelect={handleServiceSelect}
         />
 
-        {/* Full-width search bar */}
-        <ResultsSearchBar
-          onSearch={handleSearch}
-          filtersOpen={filterSheetOpen}
-          filtersActive={!!(activeFilters.min_price || activeFilters.max_price || (activeFilters.shop_ids?.length > 0))}
-          onFiltersToggle={() => setFilterSheetOpen((o) => !o)}
-          showFilterBtn={isMobile}
-        />
-
         {/* Two-column layout */}
         <div className="results-layout">
           <aside className="results-sidebar">
@@ -519,7 +526,18 @@ const ResultsPage = () => {
             </div>
           </aside>
 
-          <main className="results-main">
+          <main className="results-main" ref={mainRef}>
+            {/* Search bar — sticky top, hides on scroll down */}
+            <div className={`results-searchbar-wrap${searchHidden ? ' results-searchbar-wrap--hidden' : ''}`}>
+              <ResultsSearchBar
+                onSearch={handleSearch}
+                filtersOpen={filterSheetOpen}
+                filtersActive={!!(activeFilters.min_price || activeFilters.max_price || (activeFilters.shop_ids?.length > 0))}
+                onFiltersToggle={() => setFilterSheetOpen((o) => !o)}
+                showFilterBtn={isMobile}
+              />
+            </div>
+
             {error && !loading && (
               <div className="results-error">
                 <p><WarningIcon size={16} /> {error}</p>
