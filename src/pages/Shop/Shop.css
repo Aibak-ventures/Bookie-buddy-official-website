@@ -86,7 +86,7 @@
     min-height: 100vh;
     min-height: 90vh;
     box-sizing: border-box;
-    background: linear-gradient(180deg, #8a61fb 0%, #8458ffba 60%, #ffffff 100%);
+    background: linear-gradient(180deg, #8a61fb 0%, #8458ffba 50%, #ffffff 100%);
     padding: 10px 24px 10px;
     position: relative;
     overflow: hidden;
@@ -104,63 +104,122 @@
   margin: 0 auto;
 }
 
+@keyframes banner-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes banner-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-18px) scale(1.06); }
+}
+
 .shop-banner__eyebrow {
   color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
+  font-size: clamp(13px, 2vw, 20px);
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.shop-banner__eyebrow--anim {
+  animation: banner-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .shop-banner__title {
   color: #fff;
-  font-size: clamp(28px, 5vw, 48px);
+  font-size: clamp(36px, 6vw, 64px);
   font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 12px;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 10px;
+  letter-spacing: -0.03em;
 }
 
-.shop-banner__subtitle {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 16px;
-  margin-bottom: 8px;
+.shop-banner__title--anim {
+  animation: banner-fade-up 0.75s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shop-banner__title-accent {
+  background: linear-gradient(90deg, #fff 0%, #d4c4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .shop-banner__tagline {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: clamp(15px, 2vw, 18px);
+  font-style: italic;
+  font-weight: 400;
+  max-width: 520px;
+  margin: 0 auto 20px;
+  min-height: 1.6em;
+  transition: opacity 0.35s ease;
+  animation: banner-fade-up 0.8s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shop-banner__tagline--rotate {
+  /* opacity controlled inline via JS */
+}
+
+.shop-banner__subtitle {
+  color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
-  max-width: 480px;
-  margin: 0 auto;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.shop-banner__subtitle--anim {
+  animation: banner-fade-in 0.9s 0.35s ease both;
 }
 
 /* Decorative circles */
 .shop-banner__circle {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.07);
+  animation: orb-drift 7s ease-in-out infinite;
 }
 
 .shop-banner__circle--1 {
-  width: 340px;
-  height: 340px;
-  top: -100px;
-  right: -80px;
+  width: 380px;
+  height: 380px;
+  top: -120px;
+  right: -100px;
+  animation-delay: 0s;
 }
 
 .shop-banner__circle--2 {
-  width: 220px;
-  height: 220px;
-  bottom: -60px;
-  left: -60px;
+  width: 240px;
+  height: 240px;
+  bottom: -70px;
+  left: -70px;
+  animation-delay: -3s;
+}
+
+.shop-banner__circle--3 {
+  width: 160px;
+  height: 160px;
+  top: 30%;
+  left: 8%;
+  background: rgba(255, 255, 255, 0.04);
+  animation-delay: -1.5s;
+  animation-duration: 9s;
 }
 
 /* ─── Search section ─────────────────────────────────────────────────────── */
 .shop-search-section {
   padding: 0;
   width: 100%;
-  margin-top: 40px;
+  margin-top: 14px;
 }
 
 .shop-search-card {
@@ -638,7 +697,7 @@
 
 /* ─── About the Shop — two-column card ──────────────────────────────────── */
 .shop-about-section {
-  padding: 48px 24px 64px;
+  padding: 48px 24px 0px;
   background: var(--shop-bg);
 }
 
@@ -786,6 +845,29 @@
 }
 
 /* ─── Shop footer ────────────────────────────────────────────────────────── */
+.shop-watermark {
+  overflow: hidden;
+  padding: 24px 16px 0;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+
+
+.shop-watermark__text {
+  display: block;
+  font-size: clamp(64px, 22vw, 220px);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(222 210 255 / 13%);
+  background: linear-gradient(180deg, rgba(125, 86, 231, 0.10) 0%, rgba(125, 86, 231, 0.03) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 .shop-footer {
   background: var(--shop-blue);
   color: rgba(255, 255, 255, 0.7);

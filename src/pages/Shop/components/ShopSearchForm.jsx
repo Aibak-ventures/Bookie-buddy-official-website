@@ -219,7 +219,7 @@ const ShopSearchForm = ({ initialPickupDate, initialReturnDate, initialPickupTim
     <>
       <section className="shop-search-section">
         <div className="shop-search-card">
-          <h2 className="shop-search-card__heading">Checkout our products</h2>
+          <h2 className="shop-search-card__heading">When do you need it?</h2>
 
           <form onSubmit={handleSubmit} className="shop-search-form" noValidate>
             {/* Grouped pickup + return row */}
@@ -338,7 +338,7 @@ const ShopSearchForm = ({ initialPickupDate, initialReturnDate, initialPickupTim
                 <span className="shop-category-chevron"><ChevronDownIcon /></span>
               </div>
               <button type="submit" className="shop-search-form__btn">
-                <SearchIcon size={16} /> Search available items
+                <SearchIcon size={16} />Find Available Items
               </button>
             </div>
           </form>

@@ -20,10 +20,10 @@ const ShopHeader = ({ shop }) => {
           <span className="shop-header__name">{name}</span>
         </div>
 
-        <div className="shop-header__powered">
+        {/* <div className="shop-header__powered">
           <span>Powered by</span>
           <img src="/images/logo.svg" alt="BookieBuddy" className="shop-header__bb-logo" />
-        </div>
+        </div> */}
       </div>
     </header>
   );

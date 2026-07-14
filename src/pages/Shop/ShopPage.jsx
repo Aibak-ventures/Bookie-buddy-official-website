@@ -55,13 +55,14 @@ const ShopPage = () => {
         <ShopSearchForm />
       </ShopBanner>
       <ShopInfoSection shop={shop} />
+
+      <div className="shop-watermark" aria-hidden="true">
+        <span className="shop-watermark__text">BOOKIE<br />BUDDY</span>
+      </div>
+
       <footer className="shop-footer">
         <p>
-          Powered by{' '}
-          <a href="https://www.bookiebuddy.in" target="_blank" rel="noopener noreferrer">
-            BookieBuddy
-          </a>{' '}
-          — Rental Management Made Easy
+          &copy; {new Date().getFullYear()} <a href="https://www.bookiebuddy.in" target="_blank" rel="noopener noreferrer">BookieBuddy</a> — The Rental Management System. All rights reserved.
         </p>
       </footer>
     </div>

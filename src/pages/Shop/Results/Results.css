@@ -700,7 +700,7 @@ border-color: #c4b5f8;
 .filter-sheet__btn {
   flex: 1;
   padding: 13px 16px;
-  border-radius: var(--radius-input);
+  border-radius: 8px;
   font-size: var(--fs-md);
   font-weight: 700;
   cursor: pointer;
@@ -1262,7 +1262,7 @@ border-color: #c4b5f8;
    instead of relying on flex auto-margin. */
 .product-card--list .product-card__body {
   align-self: stretch;
-  padding-right: 118px;
+  padding-right: 15px;
   padding-bottom: 44px;
 }
 
@@ -1453,8 +1453,7 @@ border-color: #c4b5f8;
     padding: 8px 10px;
   }
   .product-card--list .product-card__body {
-    padding-right: 110px;
-    padding-bottom: 36px;
+    padding: 15px 10px 10px 10px;
   }
   .product-card--list .product-card__actions {
     right: 8px;
