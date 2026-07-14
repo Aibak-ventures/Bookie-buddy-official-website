@@ -45,6 +45,11 @@ export async function fetchProducts(publicToken, params = {}) {
     qs.set('shop_ids', params.shop_ids.join(','));
   }
 
+  // shop_ids as comma-separated string: shop_ids=7,49
+  if (Array.isArray(params.shop_ids) && params.shop_ids.length > 0) {
+    qs.set('shop_ids', params.shop_ids.join(','));
+  }
+
   const url = `${API_BASE_URL}/api/v3/public/shops/${publicToken}/products/?${qs.toString()}`;
   const response = await fetch(url);
   if (!response.ok) {
