@@ -1,8 +1,1 @@
-/* Home page specific styles */
-.home-page {
-  background-color: #fff;
-}
-
-html.dark .home-page {
-  background-color: #000;
-}
+/* Home served as static iframe — see public/home/index.html */

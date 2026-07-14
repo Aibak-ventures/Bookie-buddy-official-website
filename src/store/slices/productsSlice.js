@@ -6,22 +6,18 @@ import { fetchProducts, fetchProductsFromUrl } from '../../services/productsApi'
  * Used both inside thunks and in components.
  */
 export function buildRequestParams(baseParams, activeFilters, overrides = {}) {
-  const sv = overrides.search_value ?? activeFilters.search_value;
+  const sv      = overrides.search_value ?? activeFilters.search_value;
+  const shopIds = overrides.shop_ids     ?? activeFilters.shop_ids;
   return {
     pickup_date:  baseParams.pickup_date  || '',
     return_date:  baseParams.return_date  || '',
     pickup_time:  baseParams.pickup_time  || undefined,
     return_time:  baseParams.return_time  || undefined,
-    service_id:   overrides.service_id   ?? activeFilters.service_id  ?? undefined,
     service_ids:  overrides.service_ids  ?? activeFilters.service_ids ?? undefined,
     search_value: sv || undefined,
     min_price:    overrides.min_price    ?? activeFilters.min_price    ?? undefined,
     max_price:    overrides.max_price    ?? activeFilters.max_price    ?? undefined,
-    shop_ids:     (() => {
-      const raw = overrides.shop_ids ?? activeFilters.shop_ids;
-      if (!raw || (Array.isArray(raw) && raw.length === 0)) return undefined;
-      return Array.isArray(raw) ? raw.join(',') : raw;
-    })(),
+    shop_ids:     (shopIds && shopIds.length > 0) ? shopIds : undefined,
   };
 }
 
@@ -81,12 +77,11 @@ const initialBaseParams = {
 };
 
 const initialActiveFilters = {
-  service_id:   null,
-  service_ids:  null,  // org: comma-separated string e.g. "7,47"
+  service_ids:  null,  // comma-separated string e.g. "7,47"
   search_value: null,
   min_price:    null,
   max_price:    null,
-  shop_ids:     null,  // array of shop ids for place filter (org only)
+  shop_ids:     null,  // number[] | null — location multi-select filter
 };
 
 const productsSlice = createSlice({
@@ -168,6 +163,7 @@ export const { setBaseParams, setActiveFilters, goToPrevPage, clearProducts } = 
 
 // ── Selectors ────────────────────────────────────────────────────────────────
 export const selectProducts          = (s) => s.products.pages[s.products.currentPageIndex]?.products ?? [];
+export const selectAllProducts       = (s) => s.products.pages.flatMap((p) => p.products);
 export const selectProductsLoading   = (s) => s.products.loading;
 export const selectProductsError     = (s) => s.products.error;
 export const selectProductsNext      = (s) => s.products.pages[s.products.currentPageIndex]?.next ?? null;

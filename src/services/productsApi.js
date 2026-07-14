@@ -11,7 +11,7 @@ import { API_BASE_URL } from '../config';
  *   pickup_time    {string} optional — 'HH:mm'
  *   return_time    {string} optional — 'HH:mm'
  *   search_value   {string} optional
- *   service_id     {number|string} optional
+ *   service_ids    {string} optional — comma-separated e.g. "7,47"
  *   min_price      {number|string} optional
  *   max_price      {number|string} optional
  *   shop_ids       {string} optional — comma-separated shop ids e.g. "7,49"
@@ -30,11 +30,15 @@ export async function fetchProducts(publicToken, params = {}) {
   append('pickup_time',  params.pickup_time);
   append('return_time',  params.return_time);
   append('search_value', params.search_value);
-  append('service_id',   params.service_id);
   append('service_ids',  params.service_ids);
   append('min_price',    params.min_price);
   append('max_price',    params.max_price);
   append('shop_ids',     params.shop_ids);
+
+  // shop_ids as comma-separated string: shop_ids=7,49
+  if (Array.isArray(params.shop_ids) && params.shop_ids.length > 0) {
+    qs.set('shop_ids', params.shop_ids.join(','));
+  }
 
   const url = `${API_BASE_URL}/api/v3/public/shops/${publicToken}/products/?${qs.toString()}`;
   const response = await fetch(url);
