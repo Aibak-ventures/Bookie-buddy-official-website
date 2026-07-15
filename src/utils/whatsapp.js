@@ -50,8 +50,9 @@ export function buildBookingWhatsAppUrl(product, shop, baseParams = {}, shortIma
   const phone = shop?.phone;
   if (!phone) return null;
 
-  const digits = String(phone).replace(/\D/g, '');
+  let digits = String(phone).replace(/\D/g, '');
   if (!digits) return null;
+  if (!digits.startsWith('91') && digits.length === 10) digits = '91' + digits;
 
   const lines = [
     'Hello,',
