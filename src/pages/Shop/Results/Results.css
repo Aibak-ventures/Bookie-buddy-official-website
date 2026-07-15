@@ -1191,8 +1191,9 @@ border-color: #c4b5f8;
    collapsing below a sensible size when the content column is very short. */
 .product-card--list .product-card__image-wrap {
   width: var(--card-img-list);
-  min-height: var(--card-img-list);
-  align-self: stretch;
+  height: var(--card-img-list);
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .product-card__image {
