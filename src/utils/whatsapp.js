@@ -65,6 +65,7 @@ export function buildBookingWhatsAppUrl(product, shop, baseParams = {}, shortIma
   if (product?.category) lines.push(`Category: ${product.category}`);
   if (product?.model)    lines.push(`Model: ${product.model}`);
   if (product?.color)    lines.push(`Color: ${product.color}`);
+  if (product?.shop_place) lines.push(`Branch: ${product.shop_place}`);
 
   const pickupDate = formatBookingDate(baseParams.pickup_date);
   const pickupTime = formatBookingTime(baseParams.pickup_time);
