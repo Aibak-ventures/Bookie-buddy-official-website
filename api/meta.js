@@ -1,25 +1,31 @@
 /**
- * Vercel Edge Function — /api/meta
+ * Vercel Serverless Function — /api/meta
  *
- * Called only for social-crawler requests to shop routes (configured via
- * vercel.json rewrites using the "has" User-Agent condition).
+ * ALL /shop/* requests are rewritten here (vercel.json).
  *
- * Fetches shop info from the BookieBuddy API and returns a full HTML page
- * with patched <title> and Open Graph / Twitter meta tags so link previews
- * on WhatsApp, Facebook, Slack, Twitter etc. show the shop's name and logo.
+ * - Social bots  → fetch shop info, patch index.html meta tags, return it
+ * - Real browsers → serve index.html as-is (React Router handles the route)
  *
- * Real browsers hit the normal SPA (index.html) and usePageMeta handles
- * meta tags client-side.
- *
- * Query params expected:
- *   ?token=<publicToken>   — the shop's public token
- *   &results=1             — (optional) set to "1" for the results page variant
- *   &path=<pathname>       — the original URL path, used to set og:url
+ * Reads dist/index.html from the filesystem to avoid HTTP fetch loops.
  */
 
-export const config = { runtime: 'edge' };
+import fs   from 'fs';
+import path from 'path';
 
-const API_BASE = 'https://dev.bookiebuddy.in';
+const API_BASE = 'https://flutter.bookiebuddy.in';
+
+const BOT_PATTERNS = [
+  'facebookexternalhit', 'facebot', 'twitterbot', 'whatsapp',
+  'telegrambot', 'slackbot', 'linkedinbot', 'discordbot',
+  'googlebot', 'bingbot', 'applebot', 'rogerbot', 'embedly',
+  'pinterest', 'vkshare', 'w3c_validator', 'preview', 'iframely',
+  'developers.google.com', 'socialflow', 'semrushbot', 'ahrefsbot',
+];
+
+function isBot(ua = '') {
+  const lower = ua.toLowerCase();
+  return BOT_PATTERNS.some((p) => lower.includes(p));
+}
 
 function escHtml(str = '') {
   return String(str)
@@ -30,98 +36,90 @@ function escHtml(str = '') {
 }
 
 function patchHtml(html, { title, description, image, url }) {
-  let result = html;
+  let out = html;
 
-  result = result.replace(/<title>[^<]*<\/title>/, `<title>${escHtml(title)}</title>`);
+  const setTag = (attr, key, val) => {
+    const re = new RegExp(`(<meta\\s+${attr}=["']${key}["']\\s+content=["'])[^"']*(['"])`, 'i');
+    if (re.test(out)) {
+      out = out.replace(re, `$1${escHtml(val)}$2`);
+    } else {
+      out = out.replace('</head>', `  <meta ${attr}="${key}" content="${escHtml(val)}" />\n</head>`);
+    }
+  };
 
-  result = result.replace(
-    /(<meta\s+property="og:title"\s+content=")[^"]*(")/,
-    `$1${escHtml(title)}$2`,
-  );
-  result = result.replace(
-    /(<meta\s+property="og:description"\s+content=")[^"]*(")/,
-    `$1${escHtml(description)}$2`,
-  );
-  result = result.replace(
-    /(<meta\s+property="og:url"\s+content=")[^"]*(")/,
-    `$1${escHtml(url)}$2`,
-  );
-  result = result.replace(
-    /(<meta\s+name="twitter:title"\s+content=")[^"]*(")/,
-    `$1${escHtml(title)}$2`,
-  );
-  result = result.replace(
-    /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,
-    `$1${escHtml(description)}$2`,
-  );
+  out = out.replace(/<title>[^<]*<\/title>/i, `<title>${escHtml(title)}</title>`);
+
+  setTag('property', 'og:title',            title);
+  setTag('property', 'og:description',      description);
+  setTag('property', 'og:url',              url);
+  setTag('property', 'og:type',             'website');
+  setTag('name',     'description',         description);
+  setTag('name',     'twitter:card',        'summary_large_image');
+  setTag('name',     'twitter:title',       title);
+  setTag('name',     'twitter:description', description);
 
   if (image) {
-    const ogTag  = `<meta property="og:image" content="${escHtml(image)}" />`;
-    const twTag  = `<meta name="twitter:image" content="${escHtml(image)}" />`;
-
-    if (/<meta\s+property="og:image"/.test(result)) {
-      result = result.replace(/(<meta\s+property="og:image"\s+content=")[^"]*(")/,
-        `$1${escHtml(image)}$2`);
-    } else {
-      result = result.replace('</head>', `  ${ogTag}\n</head>`);
-    }
-
-    if (/<meta\s+name="twitter:image"/.test(result)) {
-      result = result.replace(/(<meta\s+name="twitter:image"\s+content=")[^"]*(")/,
-        `$1${escHtml(image)}$2`);
-    } else {
-      result = result.replace('</head>', `  ${twTag}\n</head>`);
-    }
+    setTag('property', 'og:image',      image);
+    setTag('name',     'twitter:image', image);
   }
 
-  return result;
+  return out;
 }
 
-export default async function handler(request) {
-  const { searchParams, origin } = new URL(request.url);
-  const token      = searchParams.get('token');
-  const isResults  = searchParams.get('results') === '1';
-  const origPath   = searchParams.get('path') || '/';
+// Read dist/index.html once at cold start — Vercel serves from dist/
+const INDEX_PATH = path.join(process.cwd(), 'dist', 'index.html');
+let baseHtml = '';
+try {
+  baseHtml = fs.readFileSync(INDEX_PATH, 'utf-8');
+} catch {
+  baseHtml = '<!doctype html><html><head><title>BookieBuddy</title></head><body><div id="root"></div></body></html>';
+}
+
+export default async function handler(req, res) {
+  const ua                              = req.headers['user-agent'] || '';
+  const { token, results, path: origPath } = req.query;
 
   if (!token) {
-    return new Response('Missing token', { status: 400 });
+    res.status(400).send('Missing token');
+    return;
   }
 
-  // 1. Fetch shop info
+  // Real browser — serve index.html, React Router handles the route
+  if (!isBot(ua)) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).send(baseHtml);
+    return;
+  }
+
+  // Bot — fetch shop data from API
   let shop = null;
   try {
-    const res = await fetch(
+    const apiRes = await fetch(
       `${API_BASE}/api/v3/public/shops/${token}/info/`,
-      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(5000) },
+      { headers: { Accept: 'application/json' }, redirect: 'follow' },
     );
-    if (res.ok) {
-      const json = await res.json();
+    const json = await apiRes.json();
+    console.log('[meta] shop API status:', apiRes.status, 'token:', token, 'shop:', json?.data?.shop?.name ?? 'null');
+    if (apiRes.ok) {
       shop = json?.data?.shop ?? null;
     }
-  } catch {
-    // Fall through — serve unpatched HTML
-  }
-
-  // 2. Fetch the base index.html from the same deployment
-  const indexRes = await fetch(`${origin}/`, { headers: { Accept: 'text/html' } });
-  if (!indexRes.ok) {
-    return new Response('Could not load base HTML', { status: 502 });
-  }
-  const originalHtml = await indexRes.text();
+  } catch (e) { console.error('[meta] shop API error:', e.message); }
 
   if (!shop) {
-    // Return unpatched HTML — defaults from index.html are fine
-    return new Response(originalHtml, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(200).send(baseHtml);
+    return;
   }
 
-  const pageUrl = `https://www.bookiebuddy.in${origPath}`;
+  const isResults = results === '1';
+  const pageUrl   = `https://www.bookiebuddy.in${origPath || '/'}`;
+
   const meta = {
     title: isResults
       ? `${shop.name} — Available Now | BookieBuddy`
-      : `${shop.name} — BookiBuddy`,
+      : `${shop.name} — BookieBuddy`,
     description: isResults
       ? `See what's available to rent at ${shop.name}. Filter by date and book instantly on BookieBuddy.`
       : `Browse and book from ${shop.name} on BookieBuddy — the rental management platform.`,
@@ -129,13 +127,7 @@ export default async function handler(request) {
     url:   pageUrl,
   };
 
-  const patchedHtml = patchHtml(originalHtml, meta);
-
-  return new Response(patchedHtml, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-    },
-  });
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).send(patchHtml(baseHtml, meta));
 }

@@ -2,24 +2,10 @@
   "rewrites": [
     {
       "source": "/shop/:shopName/:token/results",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|facebot|Twitterbot|WhatsApp|TelegramBot|Slackbot|LinkedInBot|Discordbot|Googlebot|bingbot|Applebot|rogerbot|embedly|pinterest|preview).*"
-        }
-      ],
       "destination": "/api/meta?token=:token&results=1&path=/shop/:shopName/:token/results"
     },
     {
       "source": "/shop/:shopName/:token",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|facebot|Twitterbot|WhatsApp|TelegramBot|Slackbot|LinkedInBot|Discordbot|Googlebot|bingbot|Applebot|rogerbot|embedly|pinterest|preview).*"
-        }
-      ],
       "destination": "/api/meta?token=:token&path=/shop/:shopName/:token"
     },
     {
