@@ -39,8 +39,8 @@ const ShopPage = () => {
   }, [publicToken, dispatch]);
 
   usePageMeta({
-    title:       shop ? `${shop.name} — BookieBuddy` : undefined,
-    description: shop ? `Browse and book from ${shop.name} on BookieBuddy — the rental management platform.` : undefined,
+    title:       shop ? `${shop.name} - Check available items` : undefined,
+    description: shop ? `Check out our latest items from ${shop.name} — by Bookie Buddy the rentals platform` : undefined,
     image:       shop?.img || undefined,
     url:         shop ? `https://www.bookiebuddy.in${window.location.pathname}` : undefined,
   });

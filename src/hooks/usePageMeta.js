@@ -54,6 +54,31 @@ function setFavicon(rel, href, type, sizes) {
   return prev;
 }
 
+/**
+ * Load an image via canvas to get a same-origin data: URL.
+ * Browsers block cross-origin URLs set directly on <link rel="icon">,
+ * but a canvas-drawn data: URL works regardless of the image's origin.
+ */
+function toFaviconDataUrl(src, size = 64) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        canvas.getContext('2d').drawImage(img, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/png'));
+      } catch {
+        resolve(src); // fallback to raw URL if canvas tainted
+      }
+    };
+    img.onerror = () => resolve(src);
+    img.src = src;
+  });
+}
+
 import { useEffect } from 'react';
 
 export function usePageMeta({ title, description, image, url } = {}) {
@@ -109,10 +134,31 @@ export function usePageMeta({ title, description, image, url } = {}) {
       restores.push(() => prev !== null ? setMeta('name', 'twitter:description', prev) : removeMeta('name', 'twitter:description'));
     }
 
+    // --- favicons — convert to data: URL via canvas (bypasses cross-origin block) ---
+    if (image) {
+      const prevIco   = setFavicon('icon', image);
+      const prevIco32 = setFavicon('icon', image, 'image/png', '32x32');
+      const prevIco16 = setFavicon('icon', image, 'image/png', '16x16');
+      const prevApple = setFavicon('apple-touch-icon', image, null, '180x180');
+      restores.push(() => {
+        setFavicon('icon', prevIco);
+        setFavicon('icon', prevIco32, 'image/png', '32x32');
+        setFavicon('icon', prevIco16, 'image/png', '16x16');
+        setFavicon('apple-touch-icon', prevApple, null, '180x180');
+      });
+      // Re-set with canvas data: URL once image loads — avoids cross-origin rejection
+      toFaviconDataUrl(image, 64).then((dataUrl) => {
+        setFavicon('icon', dataUrl);
+        setFavicon('icon', dataUrl, 'image/png', '32x32');
+        setFavicon('icon', dataUrl, 'image/png', '16x16');
+        setFavicon('apple-touch-icon', dataUrl, null, '180x180');
+      });
+    }
+
     return () => {
       // Restore title
       document.title = prevTitle;
-      // Restore all metas
+      // Restore all metas and favicons
       restores.forEach((fn) => fn());
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
