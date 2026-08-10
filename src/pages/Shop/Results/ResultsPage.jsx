@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { usePageMeta } from '../../../hooks/usePageMeta';
 import { createPortal } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -317,10 +318,12 @@ const ResultsPage = () => {
     }));
   }, [publicToken, searchParams, dispatch, isLoaded, baseParams]);
 
-  useEffect(() => {
-    if (shop?.name) document.title = `Search — ${shop.name}`;
-    return () => { document.title = 'BookieBuddy'; };
-  }, [shop]);
+  usePageMeta({
+    title:       shop ? `${shop.name} — Available Now | BookieBuddy` : undefined,
+    description: shop ? `See what's available to rent at ${shop.name}. Filter by date and book instantly on BookieBuddy.` : undefined,
+    image:       shop?.img || undefined,
+    url:         shop ? `https://www.bookiebuddy.in${window.location.pathname}` : undefined,
+  });
 
   const doFetch = useCallback((filterOverrides = {}, newBase = null) => {
     dispatch(fetchProductsThunk({

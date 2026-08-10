@@ -1,33 +1,40 @@
 import { useEffect, useState } from 'react';
 
-/**
- * ImageModal — full-screen image viewer with click-to-zoom.
- */
 const ImageModal = ({ src, alt, onClose }) => {
   const [zoomed, setZoomed] = useState(false);
 
-  // Close on Escape key
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
+    // Push one history entry — back button will pop it and close the modal
+    window.history.pushState({ modal: true }, '');
     document.body.style.overflow = 'hidden';
+
+    const handlePop = () => onClose();
+    const handleKey = (e) => { if (e.key === 'Escape') handleClose(); };
+
+    window.addEventListener('popstate', handlePop);
+    document.addEventListener('keydown', handleKey);
+
     return () => {
-      document.removeEventListener('keydown', handler);
+      window.removeEventListener('popstate', handlePop);
+      document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = '';
     };
-  }, [onClose]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Always close via history.back() so the pushed entry is consumed
+  const handleClose = () => window.history.back();
 
   return (
     <div
       className="image-modal-backdrop"
-      onClick={() => { if (!zoomed) onClose(); }}
+      onClick={() => { if (!zoomed) handleClose(); }}
       role="dialog"
       aria-modal="true"
       aria-label="Image preview"
     >
       <button
         className="image-modal-close"
-        onClick={onClose}
+        onClick={handleClose}
         aria-label="Close image"
       >
         ×

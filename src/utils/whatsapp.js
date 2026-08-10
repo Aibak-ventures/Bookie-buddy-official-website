@@ -34,18 +34,13 @@ export async function shortenUrl(url) {
   try {
     const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(4000) });
     if (!res.ok) return url;
-    const short = await res.text();
+    const short = (await res.text()).trim();
     return short.startsWith('http') ? short : url;
   } catch {
     return url;
   }
 }
 
-/**
- * Builds a wa.me URL pre-filled with a booking enquiry message.
- * Pass a pre-shortened imageUrl (or null) — shortening is done by the caller
- * so it can be async without blocking the URL build.
- */
 export function buildBookingWhatsAppUrl(product, shop, baseParams = {}, shortImageUrl = null) {
   const phone = shop?.phone;
   if (!phone) return null;

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { usePageMeta } from '../../hooks/usePageMeta';
 import {
   fetchShopInfoThunk,
   selectShop,
@@ -8,6 +9,7 @@ import {
   selectShopError,
   clearShop,
 } from '../../store/slices/shopSlice';
+import { selectBaseParams } from '../../store/slices/productsSlice';
 
 import ShopHeader from './components/ShopHeader';
 import ShopBanner from './components/ShopBanner';
@@ -24,6 +26,7 @@ const ShopPage = () => {
   const shop = useSelector(selectShop);
   const loading = useSelector(selectShopLoading);
   const error = useSelector(selectShopError);
+  const baseParams = useSelector(selectBaseParams);
 
   useEffect(() => {
     if (publicToken) {
@@ -35,15 +38,12 @@ const ShopPage = () => {
     };
   }, [publicToken, dispatch]);
 
-  // Update document title once shop data arrives
-  useEffect(() => {
-    if (shop?.name) {
-      document.title = `${shop.name} — BookieBuddy`;
-    }
-    return () => {
-      document.title = 'BookieBuddy';
-    };
-  }, [shop]);
+  usePageMeta({
+    title:       shop ? `${shop.name} — BookieBuddy` : undefined,
+    description: shop ? `Browse and book from ${shop.name} on BookieBuddy — the rental management platform.` : undefined,
+    image:       shop?.img || undefined,
+    url:         shop ? `https://www.bookiebuddy.in${window.location.pathname}` : undefined,
+  });
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage publicToken={publicToken} message={error} />;
@@ -52,7 +52,12 @@ const ShopPage = () => {
     <div className="shop-page">
       <ShopHeader shop={shop} />
       <ShopBanner shop={shop}>
-        <ShopSearchForm />
+        <ShopSearchForm
+          initialPickupDate={baseParams.pickup_date || null}
+          initialReturnDate={baseParams.return_date || null}
+          initialPickupTime={baseParams.pickup_time || null}
+          initialReturnTime={baseParams.return_time || null}
+        />
       </ShopBanner>
       <ShopInfoSection shop={shop} />
 
