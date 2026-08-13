@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePageMeta } from '../../../hooks/usePageMeta';
+import { useShopAnalytics, trackShopEvent } from '../../../hooks/useShopAnalytics';
 import { createPortal } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -317,6 +318,8 @@ const ResultsPage = () => {
       },
     }));
   }, [publicToken, searchParams, dispatch, isLoaded, baseParams]);
+
+  useShopAnalytics('results', shop);
 
   usePageMeta({
     title:       shop ? `${shop.name} — Available Now | BookieBuddy` : undefined,
