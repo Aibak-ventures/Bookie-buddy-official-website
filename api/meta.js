@@ -118,11 +118,11 @@ export default async function handler(req, res) {
 
   const meta = {
     title: isResults
-      ? `${shop.name} — Available Now | BookieBuddy`
-      : `${shop.name} — BookieBuddy`,
+      ? `${shop.name} — Check Available Items`
+      : `${shop.name}`,
     description: isResults
       ? `See what's available to rent at ${shop.name}. Filter by date and book instantly on BookieBuddy.`
-      : `Browse and book from ${shop.name} on BookieBuddy — the rental management platform.`,
+      : `Browse and book from ${shop.name} on BookieBuddy`,
     image: shop.img || null,
     url:   pageUrl,
   };
