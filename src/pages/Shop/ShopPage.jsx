@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePageMeta } from '../../hooks/usePageMeta';
+import { useShopAnalytics } from '../../hooks/useShopAnalytics';
 import {
   fetchShopInfoThunk,
   selectShop,
@@ -37,6 +38,8 @@ const ShopPage = () => {
       dispatch(clearShop());
     };
   }, [publicToken, dispatch]);
+
+  useShopAnalytics('shop', shop);
 
   usePageMeta({
     title:       shop ? `${shop.name} - Check available items` : undefined,

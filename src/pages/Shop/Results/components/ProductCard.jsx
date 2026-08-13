@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ImageModal from './ImageModal';
 import { buildBookingWhatsAppUrl, shortenUrl } from '../../../../utils/whatsapp';
+import { trackShopEvent } from '../../../../hooks/useShopAnalytics';
 import { shareProduct } from '../../../../utils/share';
 
 const PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22120%22 height%3D%22120%22 viewBox%3D%220 0 120 120%22%3E%3Crect width%3D%22120%22 height%3D%22120%22 fill%3D%22%23f3f4f6%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2250%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 font-size%3D%2232%22 fill%3D%22%239ca3af%22%3E📦%3C%2Ftext%3E%3C%2Fsvg%3E';
@@ -72,6 +73,12 @@ const ProductCard = ({ product, viewMode = 'grid', shop, baseParams, isOrganizat
 
   const handleBookNow = async (e) => {
     e.stopPropagation();
+    trackShopEvent('book_now_click', {
+      shop_name:    effectiveShop?.name || '',
+      shop_token:   effectiveShop?.public_token || effectiveShop?.id || '',
+      product_name: product?.name || '',
+      product_id:   product?.id || product?.sku || '',
+    });
     const rawImage = product?.image || product?.thumbnail_image;
     const shortImage = rawImage ? await shortenUrl(rawImage) : null;
     const url = buildBookingWhatsAppUrl(product, effectiveShop, baseParams || {}, shortImage);
@@ -126,7 +133,16 @@ const ProductCard = ({ product, viewMode = 'grid', shop, baseParams, isOrganizat
       >
         <div
           className="product-card__image-wrap"
-          onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setModalOpen(true);
+            trackShopEvent('image_zoom_click', {
+              shop_name:    effectiveShop?.name || '',
+              shop_token:   effectiveShop?.public_token || effectiveShop?.id || '',
+              product_name: product?.name || '',
+              product_id:   product?.id || product?.sku || '',
+            });
+          }}
         >
           <img
             src={imgSrc}
