@@ -4,12 +4,14 @@ const ImageModal = ({ src, alt, onClose }) => {
   const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
-    // Push one history entry — back button will pop it and close the modal
+    // Push one history entry so OS back button closes the modal
     window.history.pushState({ modal: true }, '');
     document.body.style.overflow = 'hidden';
 
+    // OS back button — pop the pushed entry and close
     const handlePop = () => onClose();
-    const handleKey = (e) => { if (e.key === 'Escape') handleClose(); };
+    // Escape key
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
 
     window.addEventListener('popstate', handlePop);
     document.addEventListener('keydown', handleKey);
@@ -21,8 +23,11 @@ const ImageModal = ({ src, alt, onClose }) => {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Always close via history.back() so the pushed entry is consumed
-  const handleClose = () => window.history.back();
+  // Close button & backdrop: consume the pushed history entry, then close
+  const handleClose = () => {
+    window.history.back(); // pops the pushState entry we added on mount
+    onClose();
+  };
 
   return (
     <div

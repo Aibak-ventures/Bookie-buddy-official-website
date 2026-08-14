@@ -2,32 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DayPicker } from 'react-day-picker';
-import { format, parse, isValid, startOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import { clearProducts, setBaseParams } from '../../../store/slices/productsSlice';
 import { selectServices } from '../../../store/slices/shopSlice';
 import 'react-day-picker/style.css';
 import { Calendar as CalendarIcon, ClockCircle as ClockIcon, MinimalisticMagnifier as SearchIcon, CloseCircle as XIcon, AltArrowDown as ChevronDownIcon, Tag as TagIcon } from '@solar-icons/react';
-
-// ---------- Helpers ----------
-const today = startOfDay(new Date());
-
-function parseDateStr(str) {
-  if (!str) return undefined;
-  const d = parse(str, 'yyyy-MM-dd', new Date());
-  return isValid(d) ? d : undefined;
-}
-
-function useResponsiveMonths() {
-  const [months, setMonths] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth >= 768 ? 2 : 1
-  );
-  useEffect(() => {
-    const handleResize = () => setMonths(window.innerWidth >= 768 ? 2 : 1);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  return months;
-}
+import { today, parseDateStr } from '../../../utils/dateUtils';
+import { useResponsiveMonths } from '../../../hooks/useResponsiveMonths';
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock';
 
 // ---------- Main Component ----------
 const ShopSearchForm = ({ initialPickupDate, initialReturnDate, initialPickupTime, initialReturnTime, compact = false, onAfterSubmit }) => {
@@ -53,15 +35,7 @@ const ShopSearchForm = ({ initialPickupDate, initialReturnDate, initialPickupTim
 
   const closeCalendar = useCallback(() => setIsCalendarOpen(false), []);
 
-  // Lock body scroll when modal open
-  useEffect(() => {
-    if (isCalendarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isCalendarOpen]);
+  useBodyScrollLock(isCalendarOpen);
 
   const openCalendar = () => {
     setTempRange({ from: range.from, to: range.to });

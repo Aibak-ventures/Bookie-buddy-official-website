@@ -1,30 +1,9 @@
-import { useEffect } from 'react';
+import { usePageMeta } from '../../hooks/usePageMeta';
 
 const OG_IMAGE = 'https://i.postimg.cc/wvh88twP/Group-12.png';
 
 const Home = () => {
-  useEffect(() => {
-    const setMeta = (property, content, isName = false) => {
-      const attr = isName ? 'name' : 'property';
-      let tag = document.querySelector(`meta[${attr}="${property}"]`);
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.setAttribute(attr, property);
-        document.head.appendChild(tag);
-      }
-      tag.setAttribute('content', content);
-      return tag;
-    };
-
-    const tags = [
-      setMeta('og:image', OG_IMAGE),
-      setMeta('og:image:width', '1200'),
-      setMeta('og:image:height', '627'),
-      setMeta('twitter:image', OG_IMAGE, true),
-    ];
-
-    return () => tags.forEach((t) => t?.remove());
-  }, []);
+  usePageMeta({ image: OG_IMAGE });
 
   return (
     <iframe

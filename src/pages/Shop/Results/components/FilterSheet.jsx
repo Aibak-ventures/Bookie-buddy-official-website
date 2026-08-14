@@ -124,7 +124,7 @@ const FilterSheet = ({
               <div className="filter-sheet__price-field">
                 <label className="filter-sheet__price-label">Min</label>
                 <div className="filter-sheet__price-input-wrap">
-                  <span className="filter-sheet__price-symbol">$</span>
+                  <span className="filter-sheet__price-symbol">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -139,7 +139,7 @@ const FilterSheet = ({
               <div className="filter-sheet__price-field">
                 <label className="filter-sheet__price-label">Max</label>
                 <div className="filter-sheet__price-input-wrap">
-                  <span className="filter-sheet__price-symbol">$</span>
+                  <span className="filter-sheet__price-symbol">₹</span>
                   <input
                     type="number"
                     min="0"

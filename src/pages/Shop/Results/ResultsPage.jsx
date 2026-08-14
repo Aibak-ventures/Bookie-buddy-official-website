@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePageMeta } from '../../../hooks/usePageMeta';
 import { useShopAnalytics, trackShopEvent } from '../../../hooks/useShopAnalytics';
+import { useResponsiveMonths } from '../../../hooks/useResponsiveMonths';
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock';
+import { today, parseDateStr } from '../../../utils/dateUtils';
 import { createPortal } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DayPicker } from 'react-day-picker';
-import { format, parse, isValid, startOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import 'react-day-picker/style.css';
 
 
@@ -90,23 +93,6 @@ const ResultsSearchBar = ({ onSearch, filtersOpen, filtersActive, onFiltersToggl
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-const today = startOfDay(new Date());
-
-function parseDateStr(str) {
-  if (!str) return undefined;
-  const d = parse(str, 'yyyy-MM-dd', new Date());
-  return isValid(d) ? d : undefined;
-}
-
-function useResponsiveMonths() {
-  const [months, setMonths] = useState(() => window.innerWidth >= 768 ? 2 : 1);
-  useEffect(() => {
-    const handleResize = () => setMonths(window.innerWidth >= 768 ? 2 : 1);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  return months;
-}
 
 function fmtReadable(str) {
   const d = parseDateStr(str);
@@ -252,11 +238,7 @@ const ResultsPage = () => {
     ? 'Now select your return date'
     : `${format(sidebarTempRange.from, 'dd MMM yyyy')}  →  ${format(sidebarTempRange.to, 'dd MMM yyyy')}`;
 
-  useEffect(() => {
-    if (sidebarCalOpen) { document.body.style.overflow = 'hidden'; }
-    else                { document.body.style.overflow = ''; }
-    return () => { document.body.style.overflow = ''; };
-  }, [sidebarCalOpen]);
+  useBodyScrollLock(sidebarCalOpen);
 
   // Inline date validation
   const dateRangeError = (() => {

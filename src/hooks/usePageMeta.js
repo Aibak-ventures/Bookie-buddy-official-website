@@ -8,16 +8,6 @@
  * Pass only the fields you want to override; omit the rest to leave them unchanged.
  */
 
-const DEFAULTS = {
-  title:       'All-in-One Rental Management Software in Kerala | BookieBuddy',
-  description: "BookieBuddy's all-in-one rental management software in Kerala helps car rental, equipment hire, and bridal rental businesses manage bookings, agreements, inventory & finances easily. Save time, reduce errors, and grow your rental business hassle-free.",
-  image:       null,   // base page has no og:image in index.html
-  url:         'https://www.bookiebuddy.in/',
-  favicon:     '/home/favicon.ico',
-  favicon32:   '/home/images/favicon-32x32.png',
-  favicon16:   '/home/images/favicon-16x16.png',
-  appleTouchIcon: '/home/images/apple-touch-icon.png',
-};
 
 function getMeta(attr, value) {
   return document.querySelector(`meta[${attr}="${value}"]`);
