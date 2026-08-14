@@ -11,35 +11,28 @@
  *   image_zoom_click   — user opens the product image zoom modal
  */
 
+import { useEffect, useRef } from 'react';
+
 const GA_ID = 'G-FWPL42VC2G';
 
-function gtag(...args) {
-  if (typeof window === 'undefined') return;
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push(args);
-}
-
 /**
- * Fire a GA4 event with shop context baked in.
- * @param {string} eventName
- * @param {object} params
+ * Fire a GA4 event. Uses window.gtag defined by the snippet in index.html.
  */
 export function trackShopEvent(eventName, params = {}) {
-  gtag('event', eventName, {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+  window.gtag('event', eventName, {
     send_to: GA_ID,
     ...params,
   });
 }
 
 /**
- * Hook — call once at the top of ShopPage or ResultsPage.
- * Fires a page_view event when shop data is available.
+ * Hook — fires a page_view event once when shop data becomes available.
+ * Safe to call before shop loads — waits until shop.name exists.
  *
  * @param {'shop'|'results'} pageType
- * @param {{ name?: string, public_token?: string }} shop
+ * @param {{ name?: string, public_token?: string, id?: string }} shop
  */
-import { useEffect, useRef } from 'react';
-
 export function useShopAnalytics(pageType, shop) {
   const firedRef = useRef(false);
 
